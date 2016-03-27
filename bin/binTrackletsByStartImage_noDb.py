@@ -28,7 +28,7 @@ import sys
 import os.path
 import time
 
-OUT_TRACKLETS_SUFFIX=".tracklets.byDiaId"
+OUT_TRACKLETS_SUFFIX = ".tracklets.byDiaId"
 
 
 def getAllDiasInFile(inTracklets):
@@ -43,10 +43,9 @@ def getAllDiasInFile(inTracklets):
     return allDias
 
 
-
 def getDiaTimesAndImages(diasFile):
     toRet = {}
-    f = file(diasFile,'r')
+    f = file(diasFile, 'r')
     line = f.readline()
     count = 0
     while line != "":
@@ -63,14 +62,13 @@ def getDiaTimesAndImages(diasFile):
     return toRet
 
 
-
 def firstObsHistForDias(dias, diasDict):
     """ return the obsHistId of the earliest image represented in the track(let)."""
 
     if (len(dias)) < 1:
         raise Exception("We need at least one diaSource in arguments.")
 
-    #diasDict maps from diaSourceId -> [obsTime, obsHistId]
+    # diasDict maps from diaSourceId -> [obsTime, obsHistId]
     earliestTime, earliestObsHist = diasDict[dias[0]]
     for dia in dias[1:]:
         thisTime, thisObsHist = diasDict[dia]
@@ -81,9 +79,7 @@ def firstObsHistForDias(dias, diasDict):
     return earliestObsHist
 
 
-
 def getFileForObsHist(obsHist, outDirectory, obsHistToFile):
-
     """ looks up the right outfile for the current obsHist, opening it
     if necessary and adding it to obsHistToFile dict."""
 
@@ -94,8 +90,6 @@ def getFileForObsHist(obsHist, outDirectory, obsHistToFile):
         obsHistToFile[obsHist] = newFile
 
     return obsHistToFile[obsHist]
-        
-
 
 
 def writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diasDict):
@@ -110,15 +104,14 @@ def writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diasDict):
         outFile.write("%s\n" % (tletLine.strip()))
 
         tletLine = inTracklets.readline()
-    
-    #close all files
+
+    # close all files
     for obsHist in obsHistToFile.keys():
         obsHistToFile[obsHist].close()
 
 
-
-if __name__=="__main__":
-    tFile=sys.argv[1]
+if __name__ == "__main__":
+    tFile = sys.argv[1]
     print "Reading tracklets from ", tFile
     diasFile = sys.argv[2]
     print "Reading corresponding Dias (assumed to be in fullerDiaSource format) from ", diasFile
@@ -130,7 +123,7 @@ if __name__=="__main__":
     print "Finished reading diaSources from file ", diasFile, " at ", time.asctime()
 
     print "Reading tracklets in ", tFile, " and sorting, starting at ", time.asctime()
-    inTracklets = file(tFile,'r')
+    inTracklets = file(tFile, 'r')
     writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diaDict)
     inTracklets.close()
     print "Finished processing tracklets in ", tFile, " at ", time.asctime()

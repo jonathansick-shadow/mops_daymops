@@ -13,16 +13,15 @@ import MySQLdb as db
 import sys
 import glob
 
-DB_USER="jmyers"
-DB_PASSWD="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASSWD = "jmyers"
+DB_HOST = "localhost"
 
-OPSIM_DB="opsim_3_61"
-OPSIM_TABLE="output_opsim3_61"
+OPSIM_DB = "opsim_3_61"
+OPSIM_TABLE = "output_opsim3_61"
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
-
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
 
 
 def countUniqueFields(dias, cursor):
@@ -38,6 +37,7 @@ def countUniqueFields(dias, cursor):
     s += ");"
     cursor.execute(s)
     return cursor.fetchall()[0][0]
+
 
 def countFieldCrossers(trackletsFile, cursor):
     """ takes an open file of tracklets (or tracks) and a DB
@@ -58,15 +58,12 @@ def countFieldCrossers(trackletsFile, cursor):
     return fieldCrossers, sameFielders
 
 
-
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     trackletsFile = file(sys.argv[1], 'r')
     conn = db.connect(host=DB_HOST, user=DB_USER, passwd=DB_PASSWD)
     curs = conn.cursor()
-    
+
     fieldCrossers, sameFielders = countFieldCrossers(trackletsFile, curs)
-    
+
     print "! Infile nFieldCrossers nSameFielders nTotal"
     print sys.argv[1], fieldCrossers, sameFielders, fieldCrossers + sameFielders

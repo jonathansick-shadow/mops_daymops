@@ -10,16 +10,16 @@ import sys
 import MySQLdb as db
 
 
-#in days. We return only revisits which occur withing TIME_WINDOW of the requested image.
-TIME_WINDOW=15.0
+# in days. We return only revisits which occur withing TIME_WINDOW of the requested image.
+TIME_WINDOW = 15.0
 
-DB_USER="jmyers"
-DB_PASS="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
+DB_HOST = "localhost"
 
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
 
 
 def countRevisitsToField(obsHistId, timeWindow, cursor, epsilon=1e-5):
@@ -27,13 +27,13 @@ def countRevisitsToField(obsHistId, timeWindow, cursor, epsilon=1e-5):
             WHERE dia.opSimId=%d
             ;""" \
     % (DIAS_DB, DIAS_TABLE, obsHistId)
-    #print s
+    # print s
     cursor.execute(s)
     res = cursor.fetchall()[0][0]
     return res
 
-if __name__=="__main__":
-    inObsHistsFile=file(sys.argv[1],'r')
+if __name__ == "__main__":
+    inObsHistsFile = file(sys.argv[1], 'r')
 
     obsHists = map(int, inObsHistsFile.readlines())
 

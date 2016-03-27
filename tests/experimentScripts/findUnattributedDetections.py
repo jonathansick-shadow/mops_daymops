@@ -19,19 +19,19 @@ Results will be written to stdout.
 """
 
 
-DB_USER="jmyers"
-DB_PASS="jmyers"
-DB_DB="mops_noDeepAstromError"
-DB_TABLE="fullerDiaSource"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
+DB_DB = "mops_noDeepAstromError"
+DB_TABLE = "fullerDiaSource"
 
 # secret key for a non-asteroid detection.  any track containing this
 # a diaSource with this SSM ID is assumed to be false.
-FALSE_DET_SSMID=-1
+FALSE_DET_SSMID = -1
 
 
 import MySQLdb as db
-import glob, sys
-
+import glob
+import sys
 
 
 def getAllDiaIds(curs):
@@ -72,7 +72,6 @@ def makeDiaToSsmIdMap(curs):
     return diasToSsmIds
 
 
-
 def findAttributedDetections(diasToSsmIds, inFiles):
     """ curs should be a DB cursor. inFiles should be a list of open
     files.  curs.DB_TABLE will be searched for all DiaSources, then
@@ -100,22 +99,19 @@ def findAttributedDetections(diasToSsmIds, inFiles):
     return attributedDias
 
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     db = db.connect(user=DB_USER, passwd=DB_PASS, db=DB_DB)
     curs = db.cursor()
 
     inFiles = []
-    # read each argument. It may be a glob. 
-    for arg in sys.argv[1:]: 
+    # read each argument. It may be a glob.
+    for arg in sys.argv[1:]:
         newInFiles = glob.glob(arg)
         # open each file to make sure it exists.
         for inf in newInFiles:
             sys.stderr.write("Opening %r as input file\n" % inf)
-            inFiles.append(file(inf,'r'))
+            inFiles.append(file(inf, 'r'))
             sys.stderr.write("Opened it \n")
-
-
 
     # make a diaSource -> ssmId map
     sys.stderr.write("Building map of diaSources -> ssmIds...\n")
@@ -125,7 +121,7 @@ if __name__=="__main__":
     sys.stderr.write("Calling findUnattributedDetections\n")
     attributed = findAttributedDetections(diasToSsmIds, inFiles)
 
-    #find all dia IDs.
+    # find all dia IDs.
     sys.stderr.write("Reading all diaSource IDs from DB.\n")
     allDias = set(getAllDiaIds(curs))
     sys.stderr.write("Done reading diaSourceIDs from DB.\n")

@@ -14,13 +14,12 @@ Currently uses flat-file format like Lynne's dump of DiaSources in the format
 
 import MySQLdb as db
 
-DB_USER="jmyers"
-DB_PASSWD="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASSWD = "jmyers"
+DB_HOST = "localhost"
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
-
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
 
 
 def lookUpDia(diaId, cursor=None):
@@ -32,10 +31,8 @@ def lookUpDia(diaId, cursor=None):
     return d
 
 
-
-
-
 class DiaSource:
+
     def __init__(self, diaId, obsHistId, mjd, ssmId, ra, dec, mag, snr):
         self.diaId = diaId
         self.obsHistId = obsHistId
@@ -57,7 +54,7 @@ class DiaSource:
 
     def getObsHistId(self):
         return self.obsHistId
-    
+
     def getRa(self):
         return self.ra
 
@@ -71,8 +68,6 @@ class DiaSource:
         return self.snr
 
 
-
-
 def getAllDiasReferencedInFile(f):
     line = f.readline()
     toRet = set()
@@ -84,17 +79,14 @@ def getAllDiasReferencedInFile(f):
     return toRet
 
 
-
-
 def diaToString(dia):
     """ format a dia to Lynne's database dump format:
 
     diaId obsHistId ssmId ra dec expMjd mag snr"""
 
     return "%d %d %r %3.10f %3.10f %3.10f %3.10f %3.10f\n" % \
-        (dia.getDiaId(), dia.getObsHistId(), dia.getSsmId(), dia.getRa(), dia.getDec(), dia.getObsTime(), dia.getMag(), dia.getSnr())
-
-
+        (dia.getDiaId(), dia.getObsHistId(), dia.getSsmId(), dia.getRa(),
+         dia.getDec(), dia.getObsTime(), dia.getMag(), dia.getSnr())
 
 
 def writeDiasToFile(diaIds, dbcurs, outfile):
@@ -103,9 +95,7 @@ def writeDiasToFile(diaIds, dbcurs, outfile):
         outfile.write(diaToString(dia))
 
 
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
 
     import sys
 
@@ -114,13 +104,13 @@ if __name__=="__main__":
 
     if len(sys.argv) != 3:
         raise Exception("""USAGE: buildDiaSourceSetsForTrackletFiles <trackletsFile><outputDias>""")
-    
-    trackletsFile = file(sys.argv[1],'r')
-    outputDiaSources = file(sys.argv[2],'w')
+
+    trackletsFile = file(sys.argv[1], 'r')
+    outputDiaSources = file(sys.argv[2], 'w')
 
     print "Getting set of all diaSources referenced in file..."
     allDiasReferenced = getAllDiasReferencedInFile(trackletsFile)
-    print "Found ", len(allDiasReferenced) , " dias to write to outfile."
+    print "Found ", len(allDiasReferenced), " dias to write to outfile."
 
     print "Writing outfile..."
     writeDiasToFile(allDiasReferenced, dbcurs, outputDiaSources)

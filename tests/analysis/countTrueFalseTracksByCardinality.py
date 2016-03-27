@@ -13,23 +13,19 @@ track) and by the number of nights on which the track was observed.
 
 import sys
 
-FALSE_DIA_SSM_ID="-1" # the ssmId of a DiaSource which is attributable to non-asteroid sources
+FALSE_DIA_SSM_ID = "-1"  # the ssmId of a DiaSource which is attributable to non-asteroid sources
 
 # I tested this: select max(abs(taiMidPoint - round(taiMidPoint))) from fullerDiaSource;
 # returns .4429.
-GMT_OFFSET_DAYS=0.0
+GMT_OFFSET_DAYS = 0.0
 
 
 def mjdToNightNum(mjd):
-    #see comments near GMT_OFFSET_DAYS
+    # see comments near GMT_OFFSET_DAYS
     return int(mjd)
 
 
-
-
-
 def readDias(diasDataFile):
-
     """ reads a dump of dias, which include diaId expMjd ssmId
     obsHistId for every diaSource.  Returns a dict mapping diaId to
     data."""
@@ -40,9 +36,9 @@ def readDias(diasDataFile):
         diaId = int(diaId)
         expMjd = float(expMjd)
         obsHistId = int(obsHistId)
-        
+
         idToDias[diaId] = diaSource(diaId=diaId, obsTime=expMjd, ssmId=ssmId, obsHistId=obsHistId)
-        
+
         line = diasDataFile.readline()
 
     return idToDias
@@ -52,8 +48,8 @@ def lookUpDia(diasLookupDict, diaId):
     return diasLookupDict[diaId]
 
 
-
 class diaSource:
+
     def __init__(self, diaId, obsTime, ssmId, obsHistId):
         self.diaId = diaId
         self.obsTime = obsTime
@@ -73,11 +69,7 @@ class diaSource:
         return self.obsHistId
 
 
-
-
-
 def countTracksByCardinalityAndNumNights(diasLookupDict, tracksFile):
-
     """ Returns a dictionary mapping cardinality to number of
     total/true/false tracks corresponding in that image pair.  Also
     returns a dictionary mapping number of nights with apparitions to
@@ -87,8 +79,8 @@ def countTracksByCardinalityAndNumNights(diasLookupDict, tracksFile):
     trackLine = tracksFile.readline()
 
     cardinalityToCounts = {}
-    numNightsToCounts= {}
-    
+    numNightsToCounts = {}
+
     while trackLine != "":
         diaIds = map(int, trackLine.split())
         dias = map(lambda x: lookUpDia(diasLookupDict, x), diaIds)
@@ -99,7 +91,7 @@ def countTracksByCardinalityAndNumNights(diasLookupDict, tracksFile):
             isTrue = True
         else:
             isTrue = False
-            
+
         obsTimes = map(lambda x: x.getObsTime(), dias)
         nightsObserved = set(map(mjdToNightNum, obsTimes))
         numNightsObserved = len(nightsObserved)
@@ -109,7 +101,7 @@ def countTracksByCardinalityAndNumNights(diasLookupDict, tracksFile):
             if dict.has_key(key):
                 [nTrue, nFalse] = dict[key]
             else:
-                [nTrue, nFalse] = [0,0]
+                [nTrue, nFalse] = [0, 0]
             if isTrue:
                 nTrue += 1
             else:
@@ -121,40 +113,32 @@ def countTracksByCardinalityAndNumNights(diasLookupDict, tracksFile):
     return cardinalityToCounts, numNightsToCounts
 
 
-
-
-
-
 def writeCountsDictToFile(dict, outfile, keyString):
     outfile.write("!%s  nTotalTracks nTrueTracks nFalseTracks\n" % keyString)
     for key in sorted(dict.keys()):
-        [nTrue, nFalse] =  dict[key]
+        [nTrue, nFalse] = dict[key]
         outfile.write("%r %d %d %d\n" % (key, nTrue + nFalse, nTrue, nFalse))
 
 
-    
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     import time
     "Starting analysis at ", time.ctime()
 
     if len(sys.argv) != 5:
         print "USAGE: ", sys.argv[0], " diaDataDump tracksFile cardinalityOutFile numNightsOutfile"
         sys.exit(1)
-        
+
     [diaDataDump, tracks, cardinalityOut, numNightsOut] = sys.argv[1:]
 
     print "Reading diaSource info from ", diaDataDump
     print "Reading tracks from ", tracks
-    print "Pringing stats by image length to ",cardinalityOut
+    print "Pringing stats by image length to ", cardinalityOut
     print "Pringing stats by num nights of observation to ", numNightsOut
 
-    diasDataFile = file(diaDataDump,'r')
-    tracksFile = file(tracks,'r')
-    cardinalityOutFile = file(cardinalityOut,'w')
-    numNightsOutFile = file(numNightsOut,'w')
-    
+    diasDataFile = file(diaDataDump, 'r')
+    tracksFile = file(tracks, 'r')
+    cardinalityOutFile = file(cardinalityOut, 'w')
+    numNightsOutFile = file(numNightsOut, 'w')
 
     print "Reading dump of all Dias at ", time.ctime()
     diasLookupDict = readDias(diasDataFile)
@@ -170,5 +154,5 @@ if __name__=="__main__":
 
     cardinalityOutFile.close()
     numNightsOutFile.close()
-    
+
     print "Analysis DONE and output written successfully at ", time.ctime()

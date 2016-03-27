@@ -11,11 +11,14 @@ resulting ranging orbits.
 """
 
 
-DEFAULT_OBSCODE='807'
+DEFAULT_OBSCODE = '807'
 
-import numpy, oorb
+import numpy
+import oorb
+
 
 class Detection(object):
+
     def __init__(self, ra, dec, mjd, mag, objId):
         self.ra = ra
         self.dec = dec
@@ -29,15 +32,18 @@ class Detection(object):
         self.objId = items[6]
 
 
-
 class Track(object):
+
     def __init__(self, detections):
         self.detections = detections
         self.objectName = None
+
     def addDetection(self, det):
         self.detections.append(det)
+
     def getObjectName(self):
         return self.objectName
+
     def setObjectName(self, name):
         self.objectName = name
 
@@ -53,18 +59,20 @@ class Track(object):
 
 
 class Orbit(object):
-    def __init__(self, q, e, i, node, argPeri, meanAnom, epoch, src):
-        self.q=q
-        self.e=e
-        self.i=i
-        self.node=node
-        self.argPeri=argPeri
-        self.meanAnom=meanAnom
-        self.epoch=epoch
-        self.src=src
 
-def orbitDetermination(track, 
-                       elementType='keplerian', 
+    def __init__(self, q, e, i, node, argPeri, meanAnom, epoch, src):
+        self.q = q
+        self.e = e
+        self.i = i
+        self.node = node
+        self.argPeri = argPeri
+        self.meanAnom = meanAnom
+        self.epoch = epoch
+        self.src = src
+
+
+def orbitDetermination(track,
+                       elementType='keplerian',
                        numRangingOrbits=5000,
                        stdDev=8.3333333333333331e-05,
                        obscode='566'):
@@ -75,7 +83,7 @@ def orbitDetermination(track,
     strictly true.  It also expected fluxes instead of mags; we have
     mags in MITI format.
     """
-    # We do statistical ranging first. Then we do LSL on the orbits we get from 
+    # We do statistical ranging first. Then we do LSL on the orbits we get from
     # statistical ranging.
     trackId = 0
     coords = []
@@ -83,15 +91,15 @@ def orbitDetermination(track,
     mags = []
     filters = []
     obscodes = []                           # In reality we only have one!
-    
+
     # Get to the DiaSources.
     for d in track.detections:
         coords.append([d.ra, stdDev, d.dec, stdDev])
         mags.append(d.mag)
         mjds.append(d.mjd)
         # TODO: do we need the filter name or is the ID string OK?
-        filters.append('0') #jmyers - hacking this, but does it matter?
-            
+        filters.append('0')  # jmyers - hacking this, but does it matter?
+
     # Now convert those to numpy arrays.
     coords = numpy.array(coords, dtype='d')
     coords.shape = (len(coords), 4)
@@ -99,7 +107,6 @@ def orbitDetermination(track,
     mjds = numpy.array(mjds, dtype='d')
     mags = numpy.array(mags, dtype='d')
 
-    
     # We can start statistical ranging.
     try:
         # Choose just 3 or 4 detections for ranging.
@@ -122,9 +129,9 @@ def orbitDetermination(track,
                             filters=filters,
                             rangingOrbits=rangingOrbits)
     except:
-        #Orbit determination failed for this track. Oh well.
+        # Orbit determination failed for this track. Oh well.
         return(None)
-    
+
     # If everything went well, we have an orbit with covariance.
     # res[0]: [trackId, a, e, i, node, argPeri, m, epoch, H, G, elTypeId]
     # res[1]: is a 6x6 covariance matrix, get the upper diagonal form.
@@ -132,18 +139,18 @@ def orbitDetermination(track,
     for i in (0, 1, 2, 3, 4, 5):
         for j in range(i, 6, 1):
             cov.append(res[1][i][j])
-    
+
     # q = (1 - e) * a
-    [trackId, 
-     a, 
-     e, 
-     i, 
-     node, 
-     argPeri, 
-     m, 
-     epoch, 
-     H, 
-     G, 
+    [trackId,
+     a,
+     e,
+     i,
+     node,
+     argPeri,
+     m,
+     epoch,
+     H,
+     G,
      elTypeId] = list(res[0])
     return(Orbit(q=(1. - e) * a,
                  e=e,
@@ -153,8 +160,6 @@ def orbitDetermination(track,
                  meanAnom=m,
                  epoch=epoch,
                  src=cov))
-
-
 
 
 def getTracksFromMitiFile(lines):
@@ -176,11 +181,8 @@ def getTracksFromMitiFile(lines):
 
         newDet = Detection(line)
         tracks[curTrackId].addDetection(newDet)
-        
 
     return tracks
-
-
 
 
 def getTracksFromDetsAndIndicesFiles(detsInFile, indicesInfile):
@@ -201,9 +203,6 @@ def getTracksFromDetsAndIndicesFiles(detsInFile, indicesInfile):
     return tracks
 
 
-
-
-
 def writeDeltaToFile(dbc, deltasOutfile, orbit, objId, trackId):
     if (objId != 'UNTRUE_TRACK'):
         dbc.execute(""" select q,e,i,node, argperi, epoch from orbits where ssmId=%d; """ % (int(objId)))
@@ -215,15 +214,13 @@ def writeDeltaToFile(dbc, deltasOutfile, orbit, objId, trackId):
         print>>deltasOutfile, "UNTRUE TRACK ", trackId, " got a successful orbit!"
 
 
-
 def writeFailureToDeltaFile(deltasOutfile, objId, trackId):
     print>>deltasOutfile, "objId =", objId, "trackId =", trackId, " IOD FAILED!"
 
 
-
-
-if __name__=="__main__":
-    import sys,time
+if __name__ == "__main__":
+    import sys
+    import time
     import MySQLdb
 
     db = MySQLdb.connect(user="jmyers", passwd="jmyers", db="newOrbitsFeb2010")
@@ -231,8 +228,8 @@ if __name__=="__main__":
 
     if len(sys.argv) == 4:
         print "Reading tracks in MITI format (ID of each detection is taken to be ID of parent track) from %s" % sys.argv[1]
-        infile = file(sys.argv[1],'r')
-        outfile = file(sys.argv[2],'w')
+        infile = file(sys.argv[1], 'r')
+        outfile = file(sys.argv[2], 'w')
         deltasOutfile = file(sys.argv[3], 'w')
         tracks = getTracksFromMitiFile(infile.readlines())
 
@@ -240,7 +237,7 @@ if __name__=="__main__":
         print "Reading tracks from sets of MITI detections (%s) and a set of sets of indices into that file (%s) " % (sys.argv[1], sys.argv[2])
         detsInfile = file(sys.argv[1], 'r')
         indicesInfile = file(sys.argv[2], 'r')
-        outfile = file(sys.argv[3],'w')
+        outfile = file(sys.argv[3], 'w')
         deltasOutfile = file(sys.argv[4], 'w')
         tracks = getTracksFromDetsAndIndicesFiles(detsInfile, indicesInfile)
     else:
@@ -264,7 +261,7 @@ if __name__=="__main__":
     rangingSuccess = 0
     print "Calling ranging..."
     for trackId in tracks.keys():
-        #if tracks[trackId].isTrue():
+        # if tracks[trackId].isTrue():
         print "\trunning on track ", trackId
         print "\ttime is ", time.asctime()
         t0 = time.time()
@@ -281,7 +278,7 @@ if __name__=="__main__":
             rangingSuccess += 1
             print>>outfile, "Track ID = ", trackId, " corresponds to object: ", objId, "; fit orbit: ", orbit.q, orbit.e, orbit.i, orbit.node, orbit.argPeri, orbit.meanAnom, orbit.epoch, orbit.src
             print "\tDone! Got an orbit."
-            print "Looking up orbit in DB and writing deltas..."                
+            print "Looking up orbit in DB and writing deltas..."
             writeDeltaToFile(dbc, deltasOutfile, orbit, objId, trackId)
             print "Done!"
         else:

@@ -6,23 +6,22 @@ Calculate RA and Dec initial and changes for tracks we find.  Also
 while we're at it check whether the first two and last two detections
 were correctly linked.
 
-""" 
+"""
 
-import numpy 
+import numpy
 import sys
 import MySQLdb as db
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
 
-DB_HOST="localhost"
-DB_USER="jmyers"
-DB_PASS="jmyers"
+DB_HOST = "localhost"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
 
 # set to something positive and we will only read the first
 # MAX_TO_READ items from the file.
-MAX_TO_READ=-1
-
+MAX_TO_READ = -1
 
 
 figformat = "PS"
@@ -44,8 +43,8 @@ def getRaDecObjNameFromDias(dias, cursor):
     cursor.execute(sql)
     return cursor.fetchall()
 
-def angularDistance(a, b):
 
+def angularDistance(a, b):
     """ return distance between a and b, where a and b are angles in
     degrees. """
 
@@ -75,20 +74,19 @@ def makeContiguous(angles):
     return output
 
 
-if __name__=="__main__":
-    tracksFileName = sys.argv[1]    
+if __name__ == "__main__":
+    tracksFileName = sys.argv[1]
     print "Reading ", tracksFileName, " as a set of sets of DiaIds..."
-    tracksFile = file(tracksFileName,'r')
+    tracksFile = file(tracksFileName, 'r')
     trueTrackStatsName = sys.argv[2]
     falseTrackStatsName = sys.argv[3]
     print "Writing true track stats to ", trueTrackStatsName
     print "Writing false track stats to", falseTrackStatsName
-    
 
     outTrue = file(trueTrackStatsName, 'w')
-    outFalse = file(falseTrackStatsName,'w')
+    outFalse = file(falseTrackStatsName, 'w')
 
-    header="""!ra0 dec0 dRa dDec trackTrue firstTrackletTrue lastTrackletTrue\n"""
+    header = """!ra0 dec0 dRa dDec trackTrue firstTrackletTrue lastTrackletTrue\n"""
     outTrue.write(header)
     outFalse.write(header)
 
@@ -99,15 +97,15 @@ if __name__=="__main__":
     line = tracksFile.readline()
 
     while line != "":
-        
+
         dias = map(int, line.split())
-        
+
         rasDecsNames = getRaDecObjNameFromDias(dias, dbCurs)
 
-        ras   = map(lambda x: x[0], rasDecsNames)
-        decs  = map(lambda x: x[1], rasDecsNames)
+        ras = map(lambda x: x[0], rasDecsNames)
+        decs = map(lambda x: x[1], rasDecsNames)
         names = map(lambda x: x[2], rasDecsNames)
-        
+
         ras = makeContiguous(ras)
         decs = makeContiguous(decs)
         dRa = angularDistance(ras[0], ras[-1])
@@ -118,24 +116,23 @@ if __name__=="__main__":
         else:
             isTrue = False
 
-        #this doesn't really deal with length > 2 tracklets but close enough
+        # this doesn't really deal with length > 2 tracklets but close enough
         firstTrackletTrue = (len(set(names[:2])) == 1)
         lastTrackletTrue = (len(set(names[-2:])) == 1)
 
-        #print ras
-        #print decs
-        #print names
-        #print dRa, dDec, isTrue, firstTrackletTrue, lastTrackletTrue
+        # print ras
+        # print decs
+        # print names
+        # print dRa, dDec, isTrue, firstTrackletTrue, lastTrackletTrue
 
         outStr = "%10f %10f %10f %10f %r %r %r\n" % \
-            ( ras[0], decs[0], dRa, dDec, isTrue, 
-              firstTrackletTrue, lastTrackletTrue)
+            (ras[0], decs[0], dRa, dDec, isTrue,
+             firstTrackletTrue, lastTrackletTrue)
 
         if isTrue:
             outTrue.write(outStr)
         else:
             outFalse.write(outStr)
-
 
         if (MAX_TO_READ > 0) and (MAX_TO_READ < lineNum):
             print "Read ", lineNum, " items, stopping"

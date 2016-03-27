@@ -9,14 +9,14 @@ DiaSources and happened between some min and max time.
 
 """
 
-DB_USER="jmyers"
-DB_PASS="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
+DB_HOST = "localhost"
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
-OPSIM_DB="opsim_3_61"
-OPSIM_TABLE="output_opsim3_61"
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
+OPSIM_DB = "opsim_3_61"
+OPSIM_TABLE = "output_opsim3_61"
 
 import MySQLdb as db
 import sys
@@ -45,17 +45,15 @@ def listImagesBetween(cursor, dateA, dateB, epsilon=1e-5):
     return res
 
 
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     firstDate = float(sys.argv[1])
     lastDate = float(sys.argv[2])
 
     conn = db.connect(host=DB_HOST, user=DB_USER, passwd=DB_PASS)
     curs = conn.cursor()
 
-    imgs = listImagesBetween(curs, firstDate, lastDate) 
+    imgs = listImagesBetween(curs, firstDate, lastDate)
     for img in imgs:
         print img[0], img[1], img[2]
-                        
-    
+
+

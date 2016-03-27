@@ -9,26 +9,27 @@ import sys
 import os
 import argparse
 
+
 def getNightNum(mjd, midnight):
     """Determine night number for any MJD."""
     night = int(mjd + 0.5 - midnight)
     return night
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Split DiaSources in one input file into separate nights.")
     parser.add_argument("inputFile", type=str, help="Input file containing the diaSources.")
     nightly = "nightly"
     parser.add_argument("-n", "--nightlyDir", type=str, default=nightly,
-                        help="Output directory containing diaSources split per night. Default is %s"\
+                        help="Output directory containing diaSources split per night. Default is %s"
                         % nightly)
     parser.add_argument("-o", "--obshistDir", type=str, default=None,
-                        help="Output directory containing diaSources split per observation."\
+                        help="Output directory containing diaSources split per observation."
                         " If not specified, diaSources split per observation are not created.")
     lsst_midnight = 0.166
     parser.add_argument("--midnight", type=float, default=lsst_midnight,
-                        help="The average MJD value of midnight at the location of the observatory."\
+                        help="The average MJD value of midnight at the location of the observatory."
                         " Default value (%.3f) is appropriate for LSST site." % lsst_midnight)
     args = parser.parse_args()
 
@@ -80,6 +81,6 @@ if __name__=="__main__":
                 outfile2.close()
 
     print "Read %d lines from input file %s. Wrote to perNight files in %s." \
-      % (counter, args.inputFile, args.nightlyDir)
+        % (counter, args.inputFile, args.nightlyDir)
     if args.obshistDir is not None:
         print "Also wrote perObsHist files in %s" % args.obshistDir

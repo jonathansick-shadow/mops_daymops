@@ -9,7 +9,6 @@ usage: netObjectCoverage.py <glob of all files>
 """
 
 
-
 import sys
 import glob
 
@@ -26,19 +25,19 @@ def netObjectCoverageManyFiles(infileNames):
     netCoverage = 0.0
 
     for inf in infileNames:
-        #print inf
-        lines = file(inf,'r').readlines()
+        # print inf
+        lines = file(inf, 'r').readlines()
         [coverage, numObj] = getCoverageFromLines(lines)
         netCoverage += coverage*numObj
         netObjects += numObj
     return [netCoverage / float(netObjects), netObjects]
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     infiles = glob.glob(sys.argv[1])
     print "looking in files: ", infiles
 
     [objectCoverage, numObjects] = netObjectCoverageManyFiles(infiles)
     print "Average object coverage: ", objectCoverage
     print "Number of objects: ", numObjects
-        
+

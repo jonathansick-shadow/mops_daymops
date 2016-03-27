@@ -38,23 +38,22 @@ and changing the contents of the tracks and got the same results out.
 
 """
 
-ASSUMED_OBS_TYPE='O'
-ASSUMED_FILTER='r'
-ASSUMED_OBSERVATORY=807
-ASSUMED_RMS_MAG=1.
+ASSUMED_OBS_TYPE = 'O'
+ASSUMED_FILTER = 'r'
+ASSUMED_OBSERVATORY = 807
+ASSUMED_RMS_MAG = 1.
 
-MAX_TRACKLETS_PER_FILE=50000
-MAX_TRACKS_PER_FILE=24000
+MAX_TRACKLETS_PER_FILE = 50000
+MAX_TRACKS_PER_FILE = 24000
 
 # set MAX_TRACKS to -1 to allow infinite tracks in output. otherwise
 # set to a fixed number to do a smaller, scaled run.  handy for
 # debugging.
-MAX_TRACKS=-1
+MAX_TRACKS = -1
 
 import add_astrometric_noise as astrom
 import mopsDatabases
 from lsst.daf.base.baseLib import DateTime
-
 
 
 def writeOptFile(optFileName):
@@ -86,25 +85,17 @@ orbsrv.
     out.write(s)
 
 
-
 class Track(object):
+
     def __init__(self, trackId, dias, isKnownToBeTrue=None):
         self.trackId = trackId
         self.dias = dias
         self._isTrue = isKnownToBeTrue
 
 
-
-
-
-
 def taiToUtc(taiTime):
     d = DateTime(taiTime, DateTime.TAI)
     return d.mjd(DateTime.UTC)
-
-
-
-
 
 
 def writeDiasToDesTrackletsFile(diasToWrite, outFile, diasDict, imageDict):
@@ -118,14 +109,14 @@ def writeDiasToDesTrackletsFile(diasToWrite, outFile, diasDict, imageDict):
     allDias = map(lambda x: diasDict[x], diasToWrite)
     for dia in allDias:
         diaId, obsHistId, groundTruthId, ra, dec, utcMjd, mag, snr = dia
-        #need to calculate astrom error for this dia source.
+        # need to calculate astrom error for this dia source.
         ps, seeing = imageDict[obsHistId]
         astromErr = astrom.calcAstrometricError(mag, ps, seeing)
-        #TBD: RA astrometric error is not == astromErr, it's something else - cos(radians(dec))* astromErr?
+        # TBD: RA astrometric error is not == astromErr, it's something else - cos(radians(dec))* astromErr?
         #   add this in later. For now on the ecliptic it won't really matter.
 
-        outFile.write("%d %5.10f %s %3.12f %3.12f %3.12f %s %s %3.12f %3.12f %3.12f %3.12f %s\n" \
-                          % \
+        outFile.write("%d %5.10f %s %3.12f %3.12f %3.12f %s %s %3.12f %3.12f %3.12f %3.12f %s\n"
+                      %
                       (diaId, utcMjd, ASSUMED_OBS_TYPE, ra, dec, mag, ASSUMED_FILTER,
                        ASSUMED_OBSERVATORY, astromErr, astromErr, ASSUMED_RMS_MAG,
                        snr, groundTruthId))
@@ -136,14 +127,14 @@ def writeTrackToRequestFile(diaIds, requestFile, trackName):
 
     t = Track(trackName, diaIds)
 
-    #if this track has too many dias, then we need to subselect. max
-    #is 18 according to orbit_server.x
+    # if this track has too many dias, then we need to subselect. max
+    # is 18 according to orbit_server.x
 
     if len(diaIds) > 18:
         half = len(diaIds)/2
         newDias = diaIds[:8] + diaIds[half:half+2] + diaIds[-8:]
         diaIds = newDias
-        if len(diaIds) > 18: 
+        if len(diaIds) > 18:
             print "whoops! programmer error in writeTracksToRequestFile"
     requestFile.write("%s" % trackName)
     requestFile.write(" %d" % len(diaIds))
@@ -152,14 +143,10 @@ def writeTrackToRequestFile(diaIds, requestFile, trackName):
     requestFile.write(" REQUEST_PRELIM %d 0 0 0 0 0.0 0.0 0.0 0.0\n" % len(diaIds))
 
 
-
-
 def writeManifestFile(manifestName, trackletsName, requestName):
-    manifest = file(manifestName,'w')
+    manifest = file(manifestName, 'w')
     for name in [manifestName, trackletsName, requestName]:
         manifest.write(name + '\n')
-
-
 
 
 def createNewFiles(outPrefix, outputNumber):
@@ -172,17 +159,18 @@ def createNewFiles(outPrefix, outputNumber):
     optFileName = outPrefix + "_" + outNumS + ".opt"
     writeOptFile(optFileName)
 
-    requestFile = file(requestFileName,'w')
-    trackletsFile = file(trackletsFileName,'w')
-    trackletsFile.write("!!OID TIME OBS_TYPE RA DEC APPMAG FILTER OBSERVATORY RMS_RA RMS_DEC RMS_MAG S2N Secret_name\n")
-    requestFile.write("!!ID_OID NID TRACKLET_OIDs OP_CODE N_OBS N_SOLUTIONS N_NIGHTS ARC_TYPE NO_RADAR PARAM(4)\n")
+    requestFile = file(requestFileName, 'w')
+    trackletsFile = file(trackletsFileName, 'w')
+    trackletsFile.write(
+        "!!OID TIME OBS_TYPE RA DEC APPMAG FILTER OBSERVATORY RMS_RA RMS_DEC RMS_MAG S2N Secret_name\n")
+    requestFile.write(
+        "!!ID_OID NID TRACKLET_OIDs OP_CODE N_OBS N_SOLUTIONS N_NIGHTS ARC_TYPE NO_RADAR PARAM(4)\n")
 
     return requestFile, trackletsFile
 
 
-
-def writeOrbitServerInputFiles(inTracksFile, outPrefix, 
-                               imageDict, diasDict, 
+def writeOrbitServerInputFiles(inTracksFile, outPrefix,
+                               imageDict, diasDict,
                                maxTrackletsPerFile, maxTracksPerFile):
     """writes sets of input files for orbit_server.x. It will get
     buffer overflow if there are too many dets or tracklets in an
@@ -190,7 +178,7 @@ def writeOrbitServerInputFiles(inTracksFile, outPrefix,
     curFileSetNum = 0
     totalTracksWritten = 0
     requestFile, trackletsFile = createNewFiles(outPrefix, curFileSetNum)
-    
+
     nextTrackLine = inTracksFile.readline()
 
     diasNeededForThisOutfile = set()
@@ -215,7 +203,7 @@ def writeOrbitServerInputFiles(inTracksFile, outPrefix,
                 (MAX_TRACKS > 0 and totalTracksWritten == MAX_TRACKS):
 
             # if we're done with this set of files, start a new set of files.
-            writeDiasToDesTrackletsFile(diasNeededForThisOutfile, trackletsFile, 
+            writeDiasToDesTrackletsFile(diasNeededForThisOutfile, trackletsFile,
                                         diasDict, imageDict)
             requestFile.close()
             trackletsFile.close()
@@ -224,11 +212,10 @@ def writeOrbitServerInputFiles(inTracksFile, outPrefix,
             requestFile, trackletsFile = createNewFiles(outPrefix, curFileSetNum)
             diasNeededForThisOutfile = set()
             numTracksWrittenToThisOutfile = 0
-            
 
         # write this track to the current outfile; add its dias to the set needed for the associated
-        # "tracklets" file (which is really a set of detections)        
-        for dia in nextTrack: 
+        # "tracklets" file (which is really a set of detections)
+        for dia in nextTrack:
             diasNeededForThisOutfile.add(dia)
         writeTrackToRequestFile(nextTrack, requestFile, str(totalTracksWritten))
         totalTracksWritten += 1
@@ -239,7 +226,6 @@ def writeOrbitServerInputFiles(inTracksFile, outPrefix,
 
     requestFile.close()
     trackletsFile.close()
-
 
 
 def oneRequest(curs, imageIds, output):
@@ -259,7 +245,6 @@ def oneRequest(curs, imageIds, output):
     for r in res:
         output[r[0]] = [r[1], r[2]]
 
-        
 
 def getImageData(curs, allObsHists):
     """ use database to find 5sigma_ps and seeing for requested image;
@@ -276,16 +261,14 @@ def getImageData(curs, allObsHists):
     if len(curWorkload) > 0:
         oneRequest(curs, curWorkload, resDict)
     return resDict
-            
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
 
-
-    inDets = file(sys.argv[1],'r')
-    inTracks= file(sys.argv[2],'r')
-    outPrefix=sys.argv[3]
+    inDets = file(sys.argv[1], 'r')
+    inTracks = file(sys.argv[2], 'r')
+    outPrefix = sys.argv[3]
 
     # read all dets, find images referenced therein.
     allObsHists = set()
@@ -299,7 +282,7 @@ if __name__=="__main__":
         allDias[diaSourceId] = [diaSourceId, obsHist, ssmId, ra, decl, mjd, mag, snr]
         allObsHists.add(obsHist)
         line = inDets.readline()
-    
+
     # fetch seeing, 5sigma_ps for those images (use DB). keep that
     # data for later.
     curs = mopsDatabases.getCursor()

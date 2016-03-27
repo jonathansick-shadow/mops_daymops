@@ -21,10 +21,7 @@ This modified version alters a SINGLE OUTPUT FILE specified as its one argument.
 """
 
 
-
 import glob
-
-
 
 
 def lineNumToId(detsFile):
@@ -32,18 +29,9 @@ def lineNumToId(detsFile):
     ids = []
     while line != "":
         diaId = int(line.split()[0])
-        ids.append(diaId)        
+        ids.append(diaId)
         line = detsFile.readline()
     return ids
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -54,30 +42,28 @@ if __name__ == "__main__":
     diaIdsFileName = sys.argv[2]
     outFileName = sys.argv[3]
 
-
     print "Reading tracks-by-indices from: ", trackFileName
     print "Reading diaIds from: ", diaIdsFileName
     print "Writing outFile: ", outFileName
 
-
     trackFile = file(trackFileName, 'r')
     diaIdsFile = file(diaIdsFileName, 'r')
     outFile = file(outFileName, 'w')
-    
+
     diaIds = lineNumToId(diaIdsFile)
 
     # the track file holds line numbers from the .tracklets.miti
     # file. the diaIds file holds lines s.t. line X of diaIds file
     # is the DiaId and obs. time of the dia source at line X of
     # the .tracklets.miti file.
-    
+
     trackLine = trackFile.readline()
     while trackLine != "":
         lineNums = map(int, trackLine.split())
         trackDiaIds = []
         for lineNum in lineNums:
             trackDiaIds.append(diaIds[lineNum])
-            
+
         for dia in sorted(trackDiaIds):
             outFile.write("%d " % dia)
         outFile.write("\n")

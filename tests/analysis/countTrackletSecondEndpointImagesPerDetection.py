@@ -19,23 +19,22 @@ import sys
 import glob
 
 
-DB_USER="jmyers"
-DB_PASSWD="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASSWD = "jmyers"
+DB_HOST = "localhost"
 
-OPSIM_DB="opsim_3_61"
-OPSIM_TABLE="output_opsim3_61"
+OPSIM_DB = "opsim_3_61"
+OPSIM_TABLE = "output_opsim3_61"
 
-DIAS_DB="mops_noDeepAstromError"
-DIAS_TABLE="fullerDiaSource"
+DIAS_DB = "mops_noDeepAstromError"
+DIAS_TABLE = "fullerDiaSource"
 
 
 def getObsHist(diaId, cursor):
     s = """ SELECT dias.opSimId FROM %s.%s as dias """ % (DIAS_DB, DIAS_TABLE)
-    s += " WHERE dias.diaSourceId = %d;"""% (diaId)
+    s += " WHERE dias.diaSourceId = %d;""" % (diaId)
     cursor.execute(s)
     return cursor.fetchall()[0][0]
-
 
 
 def countTrackletSecondEndpointImagesPerDetection(trackletFile, cursor):
@@ -49,24 +48,24 @@ def countTrackletSecondEndpointImagesPerDetection(trackletFile, cursor):
             detIdToImages[firstDia].add(image)
         else:
             detIdToImages[firstDia] = set([image])
-            
+
         line = trackletFile.readline()
     detIdToNumImages = {}
     for detId in detIdToImages:
-        #print "detection ", detId, " linked with images ", detIdToImages[detId]
+        # print "detection ", detId, " linked with images ", detIdToImages[detId]
         detIdToNumImages[detId] = len(detIdToImages[detId])
 
     return detIdToNumImages
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
-    trackletFile = file(sys.argv[1],'r')
+    trackletFile = file(sys.argv[1], 'r')
     conn = db.connect(host=DB_HOST, user=DB_USER, passwd=DB_PASSWD)
     curs = conn.cursor()
 
     histDict = countTrackletSecondEndpointImagesPerDetection(trackletFile, curs)
-    
+
     print "! diaId numSecondEndpointImages"
     for detId in histDict:
         print detId, histDict[detId]

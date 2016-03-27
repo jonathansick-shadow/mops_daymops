@@ -59,47 +59,44 @@ the name of every object found (associated with some true track), newline-delimi
 
 import sys
 
-FALSE_DIA_SSM_ID="-1" # the ssmId of a DiaSource which is attributable to non-asteroid sources
+FALSE_DIA_SSM_ID = "-1"  # the ssmId of a DiaSource which is attributable to non-asteroid sources
 
-PRELOAD_DIAS_FROM_FILE=True
+PRELOAD_DIAS_FROM_FILE = True
 
 if not PRELOAD_DIAS_FROM_FILE:
     import MySQLdb as db
 
+    OPSIM_DB = "opsim_3_61"
+    OPSIM_TABLE = "output_opsim3_61"
 
-    OPSIM_DB="opsim_3_61"
-    OPSIM_TABLE="output_opsim3_61"
-    
-    DB_USER="jmyers"
-    DB_PASS="jmyers"
-    DB_HOST="localhost"
+    DB_USER = "jmyers"
+    DB_PASS = "jmyers"
+    DB_HOST = "localhost"
 
 
 def readDias(diasDataFile):
-
     """ reads a dump of dias, which include diaId expMjd ssmId
     obsHistId for every diaSource.  Returns a dict mapping diaId to
     data."""
     idToDias = {}
-    ## create a list of lists of the appropriate size
+    # create a list of lists of the appropriate size
     #idToDias = []
-    #while diasDataFile.readline() != "":
+    # while diasDataFile.readline() != "":
     #    idToDias.append([])
-    ## now populate it
-    #diasDataFile.seek(0)
+    # now populate it
+    # diasDataFile.seek(0)
     line = diasDataFile.readline()
     while line != "":
         [diaId, obsHistId, ssmId, ra, decl, expMjd, mag, SNR] = line.split()
         diaId = int(diaId)
         expMjd = float(expMjd)
         obsHistId = int(obsHistId)
-        
+
         idToDias[diaId] = [diaId, expMjd, ssmId, obsHistId]
-        
+
         line = diasDataFile.readline()
 
     return idToDias
-
 
 
 def lookUpDias(diasLookupTool, diaIds):
@@ -114,7 +111,7 @@ def lookUpDias(diasLookupTool, diaIds):
         [cursor, diasDb, diasTable] = diasLookupTool
         sql = """ SELECT diaSourceId, taiMidPoint, ssmId, opSimId FROM %s.%s 
                  WHERE diaSourceId IN (""" % (diasDb, diasTable)
-        first = True;
+        first = True
         for dia in diaIds:
             if not first:
                 sql += ", "
@@ -123,12 +120,13 @@ def lookUpDias(diasLookupTool, diaIds):
         sql += ");"
         cursor.execute(sql)
         rows = cursor.fetchall()
-        return map(lambda row: 
-                   diaSource(diaId=row[0], obsTime=row[1], ssmId=row[2], obsHistId=row[3]), 
+        return map(lambda row:
+                   diaSource(diaId=row[0], obsTime=row[1], ssmId=row[2], obsHistId=row[3]),
                    rows)
 
 
 class diaSource:
+
     def __init__(self, diaId, obsTime, ssmId, obsHistId):
         self.diaId = diaId
         self.obsTime = obsTime
@@ -148,12 +146,7 @@ class diaSource:
         return self.obsHistId
 
 
-
-
-
-
 def getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile):
-
     """return number of true tracks, number of false tracks, a
     dictionary mapping obsHistId (image ID) to true/false track counts
     (as a two-part list), and the set of findable objects
@@ -168,7 +161,7 @@ def getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile):
     obsHistCounts = {}
     foundObjects = set()
     lineCount = 0
-    
+
     while trackLine != "":
         lineCount += 1
         diaIds = map(int, trackLine.split())
@@ -176,7 +169,7 @@ def getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile):
 
         ssmIds = set(map(lambda x: x.getSsmId(), dias))
 
-        #figure out the first obs time and the obsHistId associated with it
+        # figure out the first obs time and the obsHistId associated with it
         minObsTime = None
         firstObsHistId = None
         for dia in dias:
@@ -193,8 +186,8 @@ def getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile):
         else:
             trueAtImage = 0
             falseAtImage = 0
-            
-        #figure out if this is a true track, act accordingly
+
+        # figure out if this is a true track, act accordingly
         if (len(ssmIds) == 1) and (FALSE_DIA_SSM_ID not in ssmIds):
             nTrue += 1
             isTrueTrack = True
@@ -206,14 +199,12 @@ def getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile):
             nFalse += 1
             falseAtImage += 1
 
-        #update obsHistCounts
+        # update obsHistCounts
         obsHistCounts[firstObsHistId] = [trueAtImage, falseAtImage]
-        
+
         trackLine = tracksFile.readline()
 
     return nTrue, nFalse, obsHistCounts, foundObjects
-
-
 
 
 def writeStatsFile(nTrue, nFalse, foundObjects, statsOutFile):
@@ -222,23 +213,22 @@ def writeStatsFile(nTrue, nFalse, foundObjects, statsOutFile):
 
 
 def writeObsHistFile(obsHistCounts, obsHistCountsOut):
-    obsHistCountsOut.write("!obsHistId  nTracks_startinghere nTrueTracks_startinghere nFalseTracks_startinghere\n")
+    obsHistCountsOut.write(
+        "!obsHistId  nTracks_startinghere nTrueTracks_startinghere nFalseTracks_startinghere\n")
     for obsHistId in sorted(obsHistCounts.keys()):
-        [nTrue, nFalse] =  obsHistCounts[obsHistId]
+        [nTrue, nFalse] = obsHistCounts[obsHistId]
         obsHistCountsOut.write("%d %d %d %d\n" % (obsHistId, nTrue + nFalse, nTrue, nFalse))
 
 
 def writeFoundObjectsFile(foundObjects, foundObjectsOut):
     for foundObject in foundObjects:
         foundObjectsOut.write("%s\n" % foundObject)
-    
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import time
     import glob
     "Starting analysis at ", time.ctime()
-
 
     # if preloading dias, diasLookupTool is a dict of data read from a
     # file.  if not, diasLookupTool will be a database connection.
@@ -253,8 +243,8 @@ if __name__=="__main__":
             sys.exit(1)
         [diaDataDump, tracksGlobPattern] = sys.argv[1:]
         print "Reading diaSource info from ", diaDataDump
-        diasDataFile = file(diaDataDump,'r')
-        
+        diasDataFile = file(diaDataDump, 'r')
+
         print "Reading dump of all Dias at ", time.ctime()
         diasLookupTool = readDias(diasDataFile)
     else:
@@ -273,29 +263,29 @@ if __name__=="__main__":
 
     print "Reading tracks from ", tracksGlob
 
-
     for tracks in tracksGlob:
-            tracksFile = file(tracks,'r')
-            statsOutFile = file(tracks + ".stats",'w')
-            obsHistOutFile = file(tracks + ".stats_perObsHist",'w')
-            foundObjectsOutFile = file(tracks + ".foundObjects",'w')
-            trueTracksOutFile = file(tracks + ".trueTracks.byDiaId", 'w')
-            
-            print "Starting analysis of ", tracks, " at ", time.ctime()
-            t0 = time.time()
-            nTrue, nFalse, obsHistCounts, foundObjects = getLotsOfStatsFromTracksFile(diasLookupTool, tracksFile, trueTracksOutFile)
-            print "Done at ", time.ctime()
-            dt = time.time() - t0
-            print "Reading/analyzing ", nTrue + nFalse, " tracks took ", dt, " seconds."
-            print "Writing output at ", time.ctime()
-            writeStatsFile(nTrue, nFalse, foundObjects, statsOutFile)
-            writeObsHistFile(obsHistCounts, obsHistOutFile)
-            writeFoundObjectsFile(foundObjects, foundObjectsOutFile)
-            
-            statsOutFile.close()
-            obsHistOutFile.close()
-            foundObjectsOutFile.close()
-            
-            print "Analysis DONE and output written successfully at ", time.ctime()
+        tracksFile = file(tracks, 'r')
+        statsOutFile = file(tracks + ".stats", 'w')
+        obsHistOutFile = file(tracks + ".stats_perObsHist", 'w')
+        foundObjectsOutFile = file(tracks + ".foundObjects", 'w')
+        trueTracksOutFile = file(tracks + ".trueTracks.byDiaId", 'w')
+
+        print "Starting analysis of ", tracks, " at ", time.ctime()
+        t0 = time.time()
+        nTrue, nFalse, obsHistCounts, foundObjects = getLotsOfStatsFromTracksFile(
+            diasLookupTool, tracksFile, trueTracksOutFile)
+        print "Done at ", time.ctime()
+        dt = time.time() - t0
+        print "Reading/analyzing ", nTrue + nFalse, " tracks took ", dt, " seconds."
+        print "Writing output at ", time.ctime()
+        writeStatsFile(nTrue, nFalse, foundObjects, statsOutFile)
+        writeObsHistFile(obsHistCounts, obsHistOutFile)
+        writeFoundObjectsFile(foundObjects, foundObjectsOutFile)
+
+        statsOutFile.close()
+        obsHistOutFile.close()
+        foundObjectsOutFile.close()
+
+        print "Analysis DONE and output written successfully at ", time.ctime()
 
     print "ALL ANALYSES FINISHED AT ", time.ctime()

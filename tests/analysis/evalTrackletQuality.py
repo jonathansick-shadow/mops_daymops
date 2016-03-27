@@ -22,7 +22,6 @@ import sys
 from countObsPerObjects import trackletIsCorrect
 
 
-
 def iterate(d, key):
     if d.has_key(key):
         d[key] += 1
@@ -30,10 +29,8 @@ def iterate(d, key):
         d[key] = 1
 
 
-
 def trackletQuality(tracklet, assocIndices):
     return (1.0*len(tracklet))/(1.0*len(assocIndices))
-
 
 
 def evalTrackletQuality(detections, pairs):
@@ -41,8 +38,8 @@ def evalTrackletQuality(detections, pairs):
     objNameToIndicesDict = {}
     objNumObsToNumberDict = {}
 
-    #find the indices associated with each object.
-    
+    # find the indices associated with each object.
+
     for i in range(len(allDets)):
         objName = allDets[i][6]
         if objName != 'NS':
@@ -51,17 +48,15 @@ def evalTrackletQuality(detections, pairs):
             else:
                 objNameToIndicesDict[objName] = set([i])
 
-    #find number of objects which were seen X times for every possible X
+    # find number of objects which were seen X times for every possible X
     for name in objNameToIndicesDict.keys():
         iterate(objNumObsToNumberDict, len(objNameToIndicesDict[name]))
-
-
-
 
     sumQuality = 0.0
     objNumObsToSumQuality = {}
     objNumObsToNumTracklets = {}
-    #objNumObsToNumTracklets[n] = number of *correct* tracklets associated with objects that had n apparitions
+    # objNumObsToNumTracklets[n] = number of *correct* tracklets associated
+    # with objects that had n apparitions
 
     for tracklet in allPairs:
         if (trackletIsCorrect(tracklet, detections)):
@@ -76,8 +71,8 @@ def evalTrackletQuality(detections, pairs):
             else:
                 objNumObsToSumQuality[numApparitions] = tq
                 objNumObsToNumTracklets[numApparitions] = 1
-        #if tracklet is not correct, it has quality 0...
-    
+        # if tracklet is not correct, it has quality 0...
+
     averageQuality = 1.0*sumQuality / (1.0*len(pairs))
     aveQualityByNumObs = {}
     for key in objNumObsToNumberDict.keys():
@@ -89,14 +84,13 @@ def evalTrackletQuality(detections, pairs):
 
     return [averageQuality, aveQualityByNumObs]
 
-if __name__=="__main__":
+if __name__ == "__main__":
     detsFile = file(sys.argv[1], 'r')
     pairsFile = file(sys.argv[2], 'r')
-    
+
     allDets = map(lambda x: x.split(), detsFile.readlines())
     allPairs = map(lambda x: map(lambda y: int(y), x.split()), pairsFile.readlines())
 
-    
     [averageQuality, numApparitionsToQuality] = evalTrackletQuality(allDets, allPairs)
 
     print "Average Tracklet Quality: ", averageQuality

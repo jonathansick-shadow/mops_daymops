@@ -23,20 +23,22 @@ suitable for running C++ linkTracklets
 
 """
 # can be specified on command line
-INPUT_DETS_SUFFIX=".dias"
-INPUT_TRACKLETS_SUFFIX=".tracklets.final.byDiaIds"
-INPUT_DETS_DIR="../../"
-INPUT_TRACKLETS_DIR="../"
-OUTPUT_DIR="./"
+INPUT_DETS_SUFFIX = ".dias"
+INPUT_TRACKLETS_SUFFIX = ".tracklets.final.byDiaIds"
+INPUT_DETS_DIR = "../../"
+INPUT_TRACKLETS_DIR = "../"
+OUTPUT_DIR = "./"
 WINDOW_SIZE = 15
 
 import glob
 import sys
 import os
 
+
 def addDetToIndexLookupTable(table, strDet, index):
     detId = int(strDet.split()[0])
     table[detId] = index
+
 
 def writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=INPUT_DETS_DIR, trackletDir=INPUT_TRACKLETS_DIR, diasSuffix=INPUT_DETS_SUFFIX, trackletSuffix=INPUT_TRACKLETS_SUFFIX):
     outputDetsSize = 0
@@ -51,7 +53,7 @@ def writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=INPUT_DETS_DIR, t
         compatibleDets = open(diasDir + str(compatibleNight) +
                               diasSuffix, 'r')
         compatibleIds = open(trackletDir + str(compatibleNight) +
-                              trackletSuffix, 'r')
+                             trackletSuffix, 'r')
         # Read each diasource input into findTracklets.
         det = compatibleDets.readline()
         while det != "":
@@ -65,7 +67,7 @@ def writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=INPUT_DETS_DIR, t
             detIds = map(int, pair.split())
             indexes = map(lambda x: idToIndexTable[x], detIds)
             indexesStr = " ".join(map(str, indexes))
-            #print "writing output ", indexesStr
+            # print "writing output ", indexesStr
             outIds.write(indexesStr + " \n")
             pair = compatibleIds.readline()
 
@@ -74,13 +76,14 @@ def writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=INPUT_DETS_DIR, t
     print "done with ", compatibleNights
     print ""
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     import argparse
 
     parser = argparse.ArgumentParser(description="Combines nightly DiaSource files into detection and tracklet files covering a window of nights.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("diasDir", type=str, help="Directory containing DiaSources (detections) seperated in files by night.")
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("diasDir", type=str,
+                        help="Directory containing DiaSources (detections) seperated in files by night.")
     parser.add_argument("trackletDir", type=str,
                         help="Directory containing the tracklet files to be used for linking.")
     parser.add_argument("outputDir", type=str,
@@ -96,7 +99,7 @@ if __name__=="__main__":
 
     print "Reading dias files from %s" % (args.diasDir)
     print "Reading tracklet files from %s" % (args.trackletDir)
-    print "Will write %d day window *.dets and *.ids files to %s" % (args.windowSize , args.outputDir)
+    print "Will write %d day window *.dets and *.ids files to %s" % (args.windowSize, args.outputDir)
 
     # Find the list of all detection files
     diasFiles = glob.glob(os.path.join(args.diasDir + '*' + args.diasSuffix))
@@ -112,14 +115,14 @@ if __name__=="__main__":
         # linkTracklets won't run (linkTracklets requires 3 nights of tracklets).
         compatibleNights = sorted(x for x in nights if x >= night and x <= (night + args.windowSize))
 
-        if not ((compatibleNights != previousNights) & (len(compatibleNights)>=3)) :
+        if not ((compatibleNights != previousNights) & (len(compatibleNights) >= 3)):
             print "No track could start on night ", night
             print "Compatible nights are: ", compatibleNights
         else:
             # we can indeed do useful searching here.
             prefix = args.outputDir + "night_" + str(night) + "_through_" + str(compatibleNights[-1])
             outDets = open(prefix + ".dets", 'w')
-            outIds =  open(prefix + ".ids", 'w')
+            outIds = open(prefix + ".ids", 'w')
             endTimeRange = compatibleNights[1]
             print "compatibleNights for night ", night, " :  ", compatibleNights
             print "adding ", compatibleNights, " to linkTracklets input set for ", night
@@ -129,6 +132,7 @@ if __name__=="__main__":
             tRangeFile.write(str(float(endTimeRange)))
             tRangeFile.close()
 
-        writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=args.diasDir, trackletDir=args.trackletDir, diasSuffix=args.diasSuffix, trackletSuffix=args.trackletSuffix)
+        writeDetsAndIds(outDets, outIds, compatibleNights, diasDir=args.diasDir,
+                        trackletDir=args.trackletDir, diasSuffix=args.diasSuffix, trackletSuffix=args.trackletSuffix)
 
         previousNights = compatibleNights

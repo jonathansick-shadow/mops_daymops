@@ -12,7 +12,7 @@
 # numpy arrays (keys for the dictionary are user-defined).
 #   (the readDatafile method could be better done using recarrays from numpy I think, but
 #    this is a to-do. )
-# 
+#
 # Requires numpy, MySQLdb, and pgdb modules for python.
 #
 # * sqlConnect(hostname='localhost', username='lsst', passwdname='lsst', dbname='opsimdev',
@@ -48,14 +48,15 @@ midnight = 0.66
 deg2rad = n.pi/180.0
 rad2deg = 180.0/n.pi
 
+
 def sqlConnect(hostname='localhost', username='jmyers', passwdname='jmyers', dbname='opsim_3_61',
                type="mysql", verbose=True):
     """Connect to database."""
-    if type=="mysql":
+    if type == "mysql":
         conn = mysql.connect(host=hostname, user=username, passwd=passwdname, db=dbname)
         if verbose:
             print "Connected to MySQL database %s as %s." % (dbname, username)
-    #elif type=="pgsql":
+    # elif type=="pgsql":
     #    conn = pgsql.connect(host=hostname, user=username, password=passwdname,
     #                         database=dbname)
     #    if verbose:
@@ -64,6 +65,7 @@ def sqlConnect(hostname='localhost', username='jmyers', passwdname='jmyers', dbn
         raise Exception("Use 'mysql' or 'pgsql' for database type only.")
     cursor = conn.cursor()
     return conn, cursor
+
 
 def sqlEndConnect(conn, cursor, verbose=True):
     """End connection to database."""
@@ -74,19 +76,21 @@ def sqlEndConnect(conn, cursor, verbose=True):
         print "Committed any changes and closed connection to database."
     return
 
+
 def sqlQuery(cursor, query, verbose=True):
     """Send query to db table, return results."""
     if verbose:
         print '#', query
-    # Execute query. 
+    # Execute query.
     cursor.execute(query)
     results = cursor.fetchall()
     return results
 
+
 def sqlQueryLimited(cursor, query, verbose=True, offset=0, drows=1000):
     """Send query to db table, get drows of the results, starting at offset."""
-    # Add limit information with offsets/limit. 
-    query += ' limit %s, %s' %(offset, drows)
+    # Add limit information with offsets/limit.
+    query += ' limit %s, %s' % (offset, drows)
     if verbose:
         print '#', query
     # Execute the query.
@@ -94,12 +98,13 @@ def sqlQueryLimited(cursor, query, verbose=True, offset=0, drows=1000):
     results = cursor.fetchall()
     return results
 
+
 def assignResults(sqlresults, keys):
     """Split sqlresults into keys, return a dictionary of numpy arrays with results.
-    Keys must map to the sqlquery results.""" 
+    Keys must map to the sqlquery results."""
     arraylen = len(sqlresults)
     # Return empty dictionary if number of results were 0.
-    if arraylen==0:
+    if arraylen == 0:
         value = {}
         for key in keys:
             value[key] = None
@@ -109,7 +114,7 @@ def assignResults(sqlresults, keys):
     j = 0
     datatype = {}
     for key in keys:
-        test = result[j] 
+        test = result[j]
         j = j+1
         datatype[key] = type(test)
     # Set up the dictionary for the data values.
@@ -118,8 +123,8 @@ def assignResults(sqlresults, keys):
         value[key] = n.empty((arraylen,), dtype=datatype[key])
     # Start assigning sql query results.
     i = 0
-    for result in sqlresults: 
-        j = 0  
+    for result in sqlresults:
+        j = 0
         for key in keys:
             value[key][i] = result[j]
             j = j+1
@@ -127,10 +132,11 @@ def assignResults(sqlresults, keys):
     # Done assigning sql query results.
     return value
 
+
 def readDatafile(infilename, keys, keytypes=None,
                  startcol=0, cols=None, sample=1, skiprows=0, delimiter=None):
     """Read values from infilename, in columns keys, and return dictionary of numpy arrays.
-    
+
     Limitation - while startcol can be >0, cannot skip columns beyond that point."""
     # this can be done with loadtxt too, if you don't unpack (put in recarray) -- TODO
     # open file
@@ -138,13 +144,13 @@ def readDatafile(infilename, keys, keytypes=None,
     try:
         f = open(infilename, 'r')
     except IOError:
-        print >>sys.stderr, "Couldn't open file %s" %(infilename)
+        print >>sys.stderr, "Couldn't open file %s" % (infilename)
         print >>sys.stderr, "Returning None values"
         value = {}
         for i in keys:
             value[i] = None
         return value
-    print >>sys.stderr, "Reading file %s" %(infilename)
+    print >>sys.stderr, "Reading file %s" % (infilename)
     # Read data from file.
     value = {}
     for key in keys:
@@ -162,21 +168,21 @@ def readDatafile(infilename, keys, keytypes=None,
         if sampleskip == sample:
             linevalues = line.split()
             j = startcol
-            if len(linevalues)>=(len(keys)-j):
+            if len(linevalues) >= (len(keys)-j):
                 for key in keys:
                     try:
                         value[key].append(linevalues[j])
                     except IndexError:
                         print "readDataFile failed at line %d, column %d, key=%s" \
-                              %(i, j+1, key)
-                        print "Data values: %s" %(linevalues)
+                              % (i, j+1, key)
+                        print "Data values: %s" % (linevalues)
                         raise IndexError
                     j = j+1
             sampleskip = 0
     # End of loop over lines.
     # Convert to numpy arrays.
     for key in keys:
-        if keytypes!=None:
+        if keytypes != None:
             value[key] = n.array(value[key], dtype=keytypes[keys.index(key)])
         else:
             value[key] = n.array(value[key], dtype='float')
@@ -191,19 +197,19 @@ def writeDatafile(outfilename, data, keys, printheader=True, newfile=True):
         try:
             fout = open(outfilename, 'w')
         except IOError:
-            print >>sys.stderr, "Couldn't open file %s" %(outfilename)
+            print >>sys.stderr, "Couldn't open file %s" % (outfilename)
             return
     else:
         try:
             fout = open(outfilename, 'a')
         except IOError:
-            print >>sys.stderr, "Couldn't open file %s" %(outfilename)
+            print >>sys.stderr, "Couldn't open file %s" % (outfilename)
             return
     # Print header information if desired.
-    if printheader: 
+    if printheader:
         writestring = "# "
         for key in keys:
-            writestring = writestring + " " +  key
+            writestring = writestring + " " + key
         print >>fout, writestring
     # Print data information.
     datatype = {}
@@ -216,16 +222,17 @@ def writeDatafile(outfilename, data, keys, printheader=True, newfile=True):
             datatype[key] = 'str'
         else:
             datatype[key] = 'unknown'
-            print >>sys.stderr, "Couldn't determine data type of values with %s key; will skip in output" %(key)
+            print >>sys.stderr, "Couldn't determine data type of values with %s key; will skip in output" % (
+                key)
     for i in range(len(data[keys[0]])):
         writestring = ""
         for key in keys:
             if datatype[key] == 'str':
                 writestring = writestring + " " + data[key][i]
             elif datatype[key] == 'float':
-                writestring = writestring + " %f" %(data[key][i])
+                writestring = writestring + " %f" % (data[key][i])
             elif datatype[key] == 'int':
-                writestring = writestring + " %d" %(data[key][i])
+                writestring = writestring + " %d" % (data[key][i])
         # Done constructing write line.
         print >>fout, writestring
     # Done writing data.

@@ -15,13 +15,9 @@ diaSource DB into memory at start-up.
 """
 
 
-
 import mopsDatabases
 import sys
 import MySQLdb as db
-
-
-
 
 
 def getDiaInfo(diaIds, idToDataMap):
@@ -49,7 +45,6 @@ def writeHeader(outf):
     outf.write("#!trackNum diaSourceId opSimId ssmId ra decl taiMidPoint mag snr\n")
 
 
-
 def writeTrackDias(trackId, diasData, outf):
     for dia in diasData:
         trackString = ""
@@ -57,7 +52,7 @@ def writeTrackDias(trackId, diasData, outf):
         for datum in dia:
             trackString += str(datum) + " "
         outf.write(trackString + "\n")
-        
+
 
 def tracksToLynneFormat(inf, outf, cursor):
     idToDataMap = fetchAllDiasFromDb(cursor)
@@ -74,10 +69,9 @@ def tracksToLynneFormat(inf, outf, cursor):
         line = inf.readline()
 
 
-
-if __name__=="__main__":
-    inf = file(sys.argv[1],'r')
-    outf = file(sys.argv[2],'w')
+if __name__ == "__main__":
+    inf = file(sys.argv[1], 'r')
+    outf = file(sys.argv[2], 'w')
     curs = mopsDatabases.getCursor()
 
     tracksToLynneFormat(inf, outf, curs)

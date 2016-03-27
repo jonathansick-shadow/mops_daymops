@@ -32,15 +32,15 @@ one tracklet per detection.
 import numpy
 import time
 
-DEBUG=False
-OUTPUT_FORMAT="diaIds" # "miti" or "diaIds"
-OBSCODE="807"
-FORCED_MAG=24.0
-CUR_TRACK_ID=0 #this is the first track ID to be written, successive tracks will have successive IDs...
-
+DEBUG = False
+OUTPUT_FORMAT = "diaIds"  # "miti" or "diaIds"
+OBSCODE = "807"
+FORCED_MAG = 24.0
+CUR_TRACK_ID = 0  # this is the first track ID to be written, successive tracks will have successive IDs...
 
 
 class Detection(object):
+
     def __init__(self, time, ra, dec, detId=None, objId=None):
         self.time = time
         self.ra = ra
@@ -49,13 +49,9 @@ class Detection(object):
         self.objId = objId
 
 
-
 # TBD: Need to replace this with something that uses GMT...
 def nightNumFromMJD(mjd):
     return int(mjd)
-
-
-
 
 
 def isFindableFromTimes(times, minPerNight=2, minNights=3):
@@ -87,8 +83,6 @@ def isFindableFromTimes(times, minPerNight=2, minNights=3):
         if DEBUG:
             print "Found track contained tracklets from ", len(usableNights), " nights.  It IS NOT acceptable"
         return False
-
-
 
 
 def writeTracks(objectDets, velocityLimit, trackletTimeLimit,
@@ -125,7 +119,7 @@ def writeTracks(objectDets, velocityLimit, trackletTimeLimit,
     apr. 27: also, return tracklet start times for all tracklets in
     some track
     """
-    
+
     if DEBUG:
         print "Saw another object with detections:"
         for i in objectDets:
@@ -141,10 +135,10 @@ def writeTracks(objectDets, velocityLimit, trackletTimeLimit,
             p1 = objectDets[tracklet[0]]
             p2 = objectDets[tracklet[1]]
             print "\tGot tracklet: "
-            print "\t",p1.time, p1.ra, p1.dec
-            print "\t",p2.time, p2.ra, p2.dec
+            print "\t", p1.time, p1.ra, p1.dec
+            print "\t", p2.time, p2.ra, p2.dec
             print ""
-    
+
     tracks = linkTracklets(objectDets, tracklets, raAccelerationLimit, decAccelerationLimit,
                            linkTrackletsTimeWindow, minObs, minNights)
     if DEBUG:
@@ -154,7 +148,7 @@ def writeTracks(objectDets, velocityLimit, trackletTimeLimit,
             for det in objectDets:
                 print det.time, det.ra, det.dec
 
-    #write tracks for this object...
+    # write tracks for this object...
     curTrackId = writeTracksToFile(objectDets, tracks, tracksOutfile, curTrackId)
 
     if len(tracks) > 0:
@@ -168,19 +162,14 @@ def writeTracks(objectDets, velocityLimit, trackletTimeLimit,
     return len(tracks), trackletStartTimes, curTrackId
 
 
-
 def trackletRaVelocity(objectDets, tracklet):
     return (objectDets[tracklet[0]].ra - objectDets[tracklet[1]].ra) / \
         (objectDets[tracklet[0]].time - objectDets[tracklet[1]].time)
 
 
-
-
 def trackletDecVelocity(objectDets, tracklet):
     return (objectDets[tracklet[0]].dec - objectDets[tracklet[1]].dec) / \
         (objectDets[tracklet[0]].time - objectDets[tracklet[1]].time)
-
-
 
 
 def writeTracksToFile(objDets, tracks, tracksOutfile, trackId):
@@ -198,19 +187,19 @@ def writeTracksToFile(objDets, tracks, tracksOutfile, trackId):
                     print "Cur detection is from ", newObjName, " other detection was from ", objName
                     print "All dets so far are: ", detIds
                     sys.exit(1)
-        if OUTPUT_FORMAT=="diaIds":
+        if OUTPUT_FORMAT == "diaIds":
             for detId in detIds:
                 tracksOutfile.write("%s " % detId)
             tracksOutfile.write('\n')
             #tracksToObjNameFile.write("%s\n" % objName)
-        elif OUTPUT_FORMAT=="miti":
+        elif OUTPUT_FORMAT == "miti":
             for tracklet in track:
                 for detIndex in tracklet:
                     det = objDets[detIndex]
                     # ID EPOCH_MJD RA_DEG DEC_DEG MAG OBSCODE OBJECT_NAME LENGTH ANGLE [EXPOSURE_TIME]
-                    tracksOutfile.write("%d %f %f %f %f %s %s 0.0 0.0\n" % \
-                                            (trackId, det.time, det.ra, det.dec, FORCED_MAG, 
-                                             OBSCODE, det.objId))
+                    tracksOutfile.write("%d %f %f %f %f %s %s 0.0 0.0\n" %
+                                        (trackId, det.time, det.ra, det.dec, FORCED_MAG,
+                                         OBSCODE, det.objId))
         else:
             raise Exception("unknown output format %s!" % OUTPUT_FORMAT)
 
@@ -226,7 +215,7 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
     """
     tracks = []
 
-    #consider every tracklet as a starting point, just like real linkTracklets
+    # consider every tracklet as a starting point, just like real linkTracklets
     for i in range(len(tracklets)):
 
         startTracklet = tracklets[i]
@@ -235,13 +224,13 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
         startRaV = trackletRaVelocity(objectDets, startTracklet)
         startDecV = trackletDecVelocity(objectDets, startTracklet)
 
-        timeCompatibleTracklets = [ ]
+        timeCompatibleTracklets = []
 
-        #print "all tracklets: "
-        #print tracklets
+        # print "all tracklets: "
+        # print tracklets
 
-        #find all tracklets which are compatible in the time domain.
-        
+        # find all tracklets which are compatible in the time domain.
+
         for j in range(i + 1, len(tracklets)):
             secondEndpointTime = objectDets[tracklets[j][0]].time
             if nightNumFromMJD(secondEndpointTime) - nightNumFromMJD(startTime) <= timeWindow and\
@@ -253,9 +242,9 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
         if DEBUG:
             print "time-compatible tracklets:"
             for t in timeCompatibleTracklets:
-                print [[objectDets[t[z]].time, objectDets[t[z]].ra, objectDets[t[z]].dec] for z in [0,1]]
-                
-        accCompatibleTracklets  = [ ]
+                print [[objectDets[t[z]].time, objectDets[t[z]].ra, objectDets[t[z]].dec] for z in [0, 1]]
+
+        accCompatibleTracklets = []
 
         # among those which are compatible in time, check if they are compatible
         # in acceleration.
@@ -268,20 +257,20 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
                 impliedAcc = abs(jDecV - startDecV) / abs(jTime - startTime)
                 if impliedAcc <= decAccLimit:
                     accCompatibleTracklets.append(timeCompatibleTracklets[j])
-                #else:
+                # else:
                 #    print "found object accelerating too quickly: %f deg/day/day" % impliedAcc
         if DEBUG:
             print "time + acc compatible tracklets:"
             for t in accCompatibleTracklets:
-                print [[objectDets[t[z]].time, objectDets[t[z]].ra, objectDets[t[z]].dec] for z in [0,1]]
+                print [[objectDets[t[z]].time, objectDets[t[z]].ra, objectDets[t[z]].dec] for z in [0, 1]]
 
-        #new version: 
-        # only find maximal tracks. Since we don't bother to account for 
+        # new version:
+        # only find maximal tracks. Since we don't bother to account for
         # quality of fit to the best-fit quadratic, we can cheat a bit and do this quickly.
         # This will be much faster.
         trackletStartTimes = []
         trackSubset = [startTracklet]
-        for j in range(len(accCompatibleTracklets)):            
+        for j in range(len(accCompatibleTracklets)):
 
             jTime = objectDets[accCompatibleTracklets[j][0]].time
             trackSubset.append(accCompatibleTracklets[j])
@@ -290,14 +279,14 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
         if DEBUG:
             print "Built maximal track, got tracklet start times: ", [startTime] + trackletStartTimes
 
-        #isFindableFromTimes checks whether we have detections from three distinct nights.
+        # isFindableFromTimes checks whether we have detections from three distinct nights.
         # if we do, add them to output.
         numObs = 0
         for tracklet in trackSubset:
             for dia in tracklet:
                 numObs += 1
         if numObs >= minObs:
-            
+
             if isFindableFromTimes([startTime] + trackletStartTimes, minPerNight=1, minNights=minNights):
                 tracks.append(trackSubset)
             else:
@@ -307,14 +296,11 @@ def linkTracklets(objectDets, tracklets, raAccLimit, decAccLimit, timeWindow, mi
             if DEBUG:
                 print "Discarded a track with ", numObs, " observations < ", minObs
 
-        #print "Current set of findable tracks starting at", tracklets[i], ":"
-        #for t in tracks:
+        # print "Current set of findable tracks starting at", tracklets[i], ":"
+        # for t in tracks:
         #    print t
 
-    
     return tracks
-
-
 
 
 def euclideanDistance(detection1, detection2):
@@ -323,16 +309,13 @@ def euclideanDistance(detection1, detection2):
     return numpy.sqrt(dRa**2 + dDec**2)
 
 
-
-
-
 def findTracklets(objectDets, velocityLimit, trackletTimeLimit, trackletMinTime):
     output = []
     isInTrackletAlready = []
     for i in range(len(objectDets)):
         isInTrackletAlready.append(False)
     for i in range(len(objectDets)):
-        
+
         if not isInTrackletAlready[i]:
             if DEBUG:
                 print "Attempting to build a tracklet starting at ", objectDets[i].time, objectDets[i].ra, objectDets[i].dec
@@ -342,7 +325,7 @@ def findTracklets(objectDets, velocityLimit, trackletTimeLimit, trackletMinTime)
                 dTime = abs(objectDets[i].time - objectDets[j].time)
                 if DEBUG:
                     print "Attempting to add detection", objectDets[j].time, objectDets[i].ra, objectDets[i].dec, ", dtime = ", dTime, " so far tracklet is size ", len(newTracklet)
-                    
+
                 if (dTime <= trackletTimeLimit and dTime >= trackletMinTime) or (len(newTracklet) >= 2 and dTime <= .5):
                     trackletVelocity = euclideanDistance(objectDets[i], objectDets[j])/dTime
                     if DEBUG:
@@ -355,8 +338,6 @@ def findTracklets(objectDets, velocityLimit, trackletTimeLimit, trackletMinTime)
             if len(newTracklet) >= 2:
                 output.append(newTracklet)
     return output
-
-
 
 
 if __name__ == "__main__":
@@ -378,13 +359,13 @@ if __name__ == "__main__":
     print "Got track Ra Acc. limit:                  %f" % raAccelerationLimit
     print "Got trac Dec Acc. limit:                  %f" % decAccelerationLimit
     print "Got track time window:                    %f" % linkTrackletsTimeWindow
-    
+
     print "Writing tracks, as sets of det IDs, to    %s" % tracksOutfile
     print "Writing findable object IDs to            %s" % findableOutfile
 
     line = infile.readline().split()
 
-    curObjectData = [ ]
+    curObjectData = []
 
     nObjects = 0
     nTrackGeneratingObjects = 0
@@ -394,55 +375,54 @@ if __name__ == "__main__":
 
     while line != []:
 
-
-        #modified version uses MITI input
+        # modified version uses MITI input
         curObject = line[6]
         mjd = line[1]
         ra = line[2]
         dec = line[3]
         detId = line[0]
-        # old format: uses output of 
-        #select diaSourceId, taiMidPoint, ra, decl, groundTruthMovingObjectId
+        # old format: uses output of
+        # select diaSourceId, taiMidPoint, ra, decl, groundTruthMovingObjectId
         #curObject = line[4]
         #mjd = float(line[1])
         #ra = float(line[2])
         #dec = float(line[3])
         #detId = int(line[0])
-        
+
         d = Detection(float(mjd), float(ra), float(dec), detId=detId, objId=curObject)
         curObjectData.append(d)
 
         nextLine = infile.readline().split()
         done = False
 
-        #check whether this was the last line containing this object's data
+        # check whether this was the last line containing this object's data
         if nextLine == []:
             done = True
-        #elif nextLine[4] != curObject:
+        # elif nextLine[4] != curObject:
         # modified version uses MITI input
         elif nextLine[6] != curObject:
             done = True
 
         if done:
-            #we've finished reading data for one object into curObjectData.
+            # we've finished reading data for one object into curObjectData.
             nObjects += 1
-            #if nObjects == 48:
+            # if nObjects == 48:
             #    DEBUG=True
-            #print "Found object with ", len(curObjectData), " detections."
-            #for data in curObjectData:
+            # print "Found object with ", len(curObjectData), " detections."
+            # for data in curObjectData:
             #    print "Got object with ID, MJD, ra, dec, detId: "
             #    print data.objId, data.time, data.ra, data.dec, data.detId
-            #sys.exit(1)
-            
-            #print "Examining object ", curObject
-            #if curObject == 1537: 
+            # sys.exit(1)
+
+            # print "Examining object ", curObject
+            # if curObject == 1537:
             #    DEBUG=True
             nTracks, trackletStartTimes, curTrackId = writeTracks(curObjectData, velocityLimit, trackletTimeLimit,
                                                                   trackletMinTime,
                                                                   raAccelerationLimit, decAccelerationLimit,
                                                                   linkTrackletsTimeWindow, tracksOutfile, findableOutfile,
                                                                   curTrackId, minObs, minNights)
-            #print "Found ", nTracks, " tracks for object." 
+            # print "Found ", nTracks, " tracks for object."
             for trackletStartTime in trackletStartTimes:
                 if imgTimesToTrackCounts.has_key(trackletStartTime):
                     imgTimesToTrackCounts[trackletStartTime] += 1
@@ -452,20 +432,17 @@ if __name__ == "__main__":
             curObjectData = []
             if nTracks > 0:
                 nTrackGeneratingObjects += 1
-            #if nObjects % 1 == 0:
+            # if nObjects % 1 == 0:
             #    print time.asctime()
             #    print "SO FAR, of %i objects, %i generated tracks (%f%%)" % \
             #        (nObjects, nTrackGeneratingObjects, nTrackGeneratingObjects*100./nObjects)
 
-
-        #get the next line        
+        # get the next line
         line = nextLine
 
-        
-        
     print "of %i objects, %i generated tracks (%f%%)" % \
         (nObjects, nTrackGeneratingObjects, nTrackGeneratingObjects*100./nObjects)
-        
+
     print "Image times with viable start tracklets for some track: "
-    #for imgTime in sorted(imgTimesToTrackCounts.keys()):
+    # for imgTime in sorted(imgTimesToTrackCounts.keys()):
     #    print imgTime, " : ", imgTimesToTrackCounts[imgTime]

@@ -12,7 +12,6 @@ end-to-end of the tracklets.
 """
 
 
-
 import sys
 
 
@@ -20,6 +19,7 @@ def getDt(ids, allDias):
     dets = [allDias[i] for i in ids]
     mjds = map(lambda x: x.getObsTime(), dets)
     return max(mjds) - min(mjds)
+
 
 def getDtsToOutfile(inTrackletsFile, outDtsFile, allDias):
     line = inTrackletsFile.readline()
@@ -30,9 +30,8 @@ def getDtsToOutfile(inTrackletsFile, outDtsFile, allDias):
         line = inTrackletsFile.readline()
 
 
-
-
 class DiaSource:
+
     def __init__(self, diaId=None, obsTime=None, ssmId=None, obsHistId=None, ra=None, dec=None, mag=None):
         self.diaId = diaId
         self.obsTime = obsTime
@@ -53,7 +52,7 @@ class DiaSource:
 
     def getObsHistId(self):
         return self.obsHistId
-    
+
     def getRa(self):
         return self.ra
 
@@ -65,7 +64,6 @@ class DiaSource:
 
 
 def readDias(diasDataFile):
-
     """ reads a dump of dias, which include diaId expMjd ssmId
     obsHistId for every diaSource.  Returns a dict mapping diaId to
     data."""
@@ -75,20 +73,18 @@ def readDias(diasDataFile):
         [diaId, mjd, ra, dec, mag, obscode, ssmId, elong, angle] = line.split()
         diaId = int(diaId)
         [ra, dec, mjd, mag, elong, angle] = map(float, [ra, dec, mjd, mag, elong, angle])
-        
-        idToDias[diaId] = DiaSource(diaId=diaId, obsTime=mjd, ssmId=ssmId, 
+
+        idToDias[diaId] = DiaSource(diaId=diaId, obsTime=mjd, ssmId=ssmId,
                                     ra=ra, dec=dec, mag=mag)
-        
+
         line = diasDataFile.readline()
 
     return idToDias
 
 
+if __name__ == "__main__":
 
-if __name__=="__main__":
-    
-
-    inTracklets = file(sys.argv[1],'r')
+    inTracklets = file(sys.argv[1], 'r')
     inMitifile = file(sys.argv[2], 'r')
     print "Reading dias from file ", inMitifile
     allDias = readDias(inMitifile)

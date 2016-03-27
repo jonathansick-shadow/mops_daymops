@@ -19,10 +19,9 @@ Python to expand it, not the shell.
 """
 
 
-
 import mopsDatabases
-import glob, sys
-
+import glob
+import sys
 
 
 def writeOutput(trackId, trackDias, orbit, dias):
@@ -34,7 +33,7 @@ def writeOutput(trackId, trackDias, orbit, dias):
     # each d in dias is [diaId, mjd, ssmId]
     tds = map(lambda x: dias[x], trackDias)
     mjds = map(lambda x: x[1], tds)
-    #print tds
+    # print tds
     ssmIds = map(lambda x: x[2], tds)
     if len(set(ssmIds)) > 1:
         ssmId = -1
@@ -42,14 +41,11 @@ def writeOutput(trackId, trackDias, orbit, dias):
         ssmId = ssmIds[0]
     dt = max(mjds) - min(mjds)
     t0 = min(mjds)
-    if orbit==None:
-        print "track %d: objId = %d, dt=%f, t0=%f orbit: %s" % (trackId,ssmId, dt, t0, "IOD_FAILED")
+    if orbit == None:
+        print "track %d: objId = %d, dt=%f, t0=%f orbit: %s" % (trackId, ssmId, dt, t0, "IOD_FAILED")
 
     else:
-        print "track %d: objId = %d, dt=%f, t0=%f orbit: %s" % (trackId,ssmId, dt, t0, orbit.rstrip())
-    
-
-
+        print "track %d: objId = %d, dt=%f, t0=%f orbit: %s" % (trackId, ssmId, dt, t0, orbit.rstrip())
 
 
 def cmpFilenames(n1, n2):
@@ -67,11 +63,10 @@ def cmpFilenames(n1, n2):
         return cmp(n1, n2)
 
 
-
 def getTrackStats(trackDias, curs):
     """ return underlying object ID (or -1 if a false track) and the
     start time, dt of the track, using DB"""
-    
+
 
 def getNextOrbit(orbitsFiles):
     """helper function for ingestOrbits. Find the next non-empty,
@@ -89,7 +84,7 @@ def getNextOrbit(orbitsFiles):
                 return l, orbitsFiles
             else:
                 # this is a header. try again.
-                #print "Saw a header line"
+                # print "Saw a header line"
                 l = f.readline()
         else:
             # we just hit the end of a file.  throw away this file,
@@ -99,10 +94,11 @@ def getNextOrbit(orbitsFiles):
                 print "DONE. No more orbits files left."
                 sys.exit(0)
             else:
-                #print "moving on to next file, ", orbitsFiles[0], "... there are now ", \
+                # print "moving on to next file, ", orbitsFiles[0], "... there are now ", \
                 #    len(orbitsFiles), " files to look in"
                 f = orbitsFiles[0]
                 l = f.readline()
+
 
 def ingestOrbits(tracksFile, orbitsFiles, dias):
     """ REQUIRE and ASSUME that orbitsFiles are sorted; that is,
@@ -117,20 +113,20 @@ def ingestOrbits(tracksFile, orbitsFiles, dias):
         trackDias = map(int, trackLine.split())
         if curOrbitTrack == curTrack:
             # we got the track corresponding to this orbit.
-            #print "   CurTrack = ", curTrack
-            #print "   ", curOrbit
-            curOrbit, orbitsFiles = getNextOrbit(orbitsFiles)            
+            # print "   CurTrack = ", curTrack
+            # print "   ", curOrbit
+            curOrbit, orbitsFiles = getNextOrbit(orbitsFiles)
             curOrbitTrack = int(curOrbit.split()[0])
 
-            writeOutput(curTrack, trackDias=trackDias, \
-                            orbit=curOrbit, dias=dias)
-            while curTrack == curOrbitTrack: 
+            writeOutput(curTrack, trackDias=trackDias,
+                        orbit=curOrbit, dias=dias)
+            while curTrack == curOrbitTrack:
                 # sometimes we get multiple orbit solutions for a
                 # single track
-                writeOutput(curTrack, trackDias=trackDias, \
-                                orbit=curOrbit, dias=dias)
+                writeOutput(curTrack, trackDias=trackDias,
+                            orbit=curOrbit, dias=dias)
 
-                curOrbit, orbitsFiles = getNextOrbit(orbitsFiles)            
+                curOrbit, orbitsFiles = getNextOrbit(orbitsFiles)
                 curOrbitTrack = int(curOrbit.split()[0])
         else:
             # IOD failed for this track
@@ -138,7 +134,6 @@ def ingestOrbits(tracksFile, orbitsFiles, dias):
         trackLine = tracksFile.readline()
         curTrack += 1
     print "DONE.  Saw ", curTrack+1, " tracks"
-
 
 
 def readDias(diasDataFile):
@@ -154,17 +149,16 @@ def readDias(diasDataFile):
         diaId = int(diaId)
         expMjd = float(expMjd)
         ssmId = int(ssmId)
-        
+
         idToDias[diaId] = [diaId, expMjd, ssmId]
-        
+
         line = diasDataFile.readline()
 
     print "Finished reading diaSources."
     return idToDias
 
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
 
     tracksFile, diasFile, orbitFiles = sys.argv[1:]
     orbitFiles = glob.glob(orbitFiles)
@@ -172,8 +166,8 @@ if __name__=="__main__":
     # get the .out.orbit files in order - first prefix_1.out.orbit,
     # then prefix_2.out.orbit, then prefix_100.out.orbit.  normal
     # Python cmp will give these in the wrong order, use a custom
-    # comparator.  We do assume that these all share the same prefix    
+    # comparator.  We do assume that these all share the same prefix
     # and suffix...
     orbitFiles = sorted(orbitFiles, cmp=cmpFilenames)
-    orbitFiles = map(lambda x: file(x,'r'), orbitFiles)
-    ingestOrbits(file(tracksFile,'r'), orbitFiles, dias)
+    orbitFiles = map(lambda x: file(x, 'r'), orbitFiles)
+    ingestOrbits(file(tracksFile, 'r'), orbitFiles, dias)

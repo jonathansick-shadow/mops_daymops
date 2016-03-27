@@ -20,30 +20,31 @@ dramatically.
 
 
 import MySQLdb
-import string, sys, os
+import string
+import sys
+import os
 
 # set up mysql access params
 mySqlHost = 'localhost'
 mySqlUser = 'jmyers'
 mySqlPasswd = 'jmyers'
 mySqlDb = 'mops_noDeepAstromError'
-    
+
 db = MySQLdb.connect(host=mySqlHost, user=mySqlUser, passwd=mySqlPasswd, db=mySqlDb)
 
 
-
 def getTrackletDias(diaIds, dbConn=db):
-    trackDia=[]
-    trackT=[]
-    trackSsmId=[]
+    trackDia = []
+    trackT = []
+    trackSsmId = []
 
-    c=dbConn.cursor()
-    query = 'SELECT diaSourceID, taiMidPoint, ssmId from fullerDiaSource where diaSourceId IN (' 
+    c = dbConn.cursor()
+    query = 'SELECT diaSourceID, taiMidPoint, ssmId from fullerDiaSource where diaSourceId IN ('
     for i in range(len(diaIds)):
         query += str(diaIds[i])
         if i < len(diaIds) - 1:
             query += ", "
-    
+
     query += ') order by taiMidPoint'
     c.execute(query)
     result = c.fetchall()
@@ -52,8 +53,7 @@ def getTrackletDias(diaIds, dbConn=db):
         trackT.append(row[1])
         trackSsmId.append(row[2])
 
-    return (trackDia,trackT,trackSsmId)
-
+    return (trackDia, trackT, trackSsmId)
 
 
 def getBestTrackletPerObj(tracklets):
@@ -71,7 +71,7 @@ def getBestTrackletPerObj(tracklets):
             trackletDt = times[-1] - times[0]
             bestTrackletDt = -1.
             if bestTrackletPerObj.has_key(ssmId):
-                bestTrackletDt = bestTrackletPerObj[ssmId][1]                
+                bestTrackletDt = bestTrackletPerObj[ssmId][1]
             if trackletDt > bestTrackletDt:
                 bestTrackletPerObj[ssmId] = [tracklet, trackletDt]
         else:
@@ -86,13 +86,13 @@ def getBestTrackletPerObj(tracklets):
     return bestTracklets
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     infile = file(sys.argv[1], 'r')
     print "Reading input from ", infile
     tracklets = infile.readlines()
     tracklets = map(lambda x: map(int, x.split()), tracklets)
     print "Done. opening output file at ", sys.argv[2]
-    outfile = file(sys.argv[2],'w')
+    outfile = file(sys.argv[2], 'w')
     print "Finding best tracklet per object seen."
     bestTracklets = getBestTrackletPerObj(tracklets)
     print "Done. Writing output."

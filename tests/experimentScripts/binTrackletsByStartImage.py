@@ -36,7 +36,7 @@ import MySQLdb as db
 import mopsDatabases
 import time
 
-OUT_TRACKLETS_SUFFIX=".tracklets.byDiaId"
+OUT_TRACKLETS_SUFFIX = ".tracklets.byDiaId"
 
 
 def getAllDiasInFile(inTracklets):
@@ -49,7 +49,6 @@ def getAllDiasInFile(inTracklets):
             allDias.add(d)
         line = inTracklets.readline()
     return allDias
-
 
 
 def getDiaTimesAndImages(dias, dbCurs, diasDb, diasTable):
@@ -65,11 +64,11 @@ def getDiaTimesAndImages(dias, dbCurs, diasDb, diasTable):
                   %s.%s""" \
             % (diasDb, diasTable)
 
-        s += """  WHERE diaSourceId IN ( """ 
+        s += """  WHERE diaSourceId IN ( """
         first = True
         for d in curDias:
-            if not first :
-                s+= ", "
+            if not first:
+                s += ", "
             first = False
             s += str(d)
         s += " );"
@@ -83,14 +82,13 @@ def getDiaTimesAndImages(dias, dbCurs, diasDb, diasTable):
     return toRet
 
 
-
 def firstObsHistForDias(dias, diasDict):
     """ return the obsHistId of the earliest image represented in the track(let)."""
 
     if (len(dias)) < 1:
         raise Exception("We need at least one diaSource in arguments.")
 
-    #diasDict maps from diaSourceId -> [obsTime, obsHistId]
+    # diasDict maps from diaSourceId -> [obsTime, obsHistId]
     earliestTime, earliestObsHist = diasDict[dias[0]]
     for dia in dias[1:]:
         thisTime, thisObsHist = diasDict[dia]
@@ -101,9 +99,7 @@ def firstObsHistForDias(dias, diasDict):
     return earliestObsHist
 
 
-
 def getFileForObsHist(obsHist, outDirectory, obsHistToFile):
-
     """ looks up the right outfile for the current obsHist, opening it
     if necessary and adding it to obsHistToFile dict."""
 
@@ -114,8 +110,6 @@ def getFileForObsHist(obsHist, outDirectory, obsHistToFile):
         obsHistToFile[obsHist] = newFile
 
     return obsHistToFile[obsHist]
-        
-
 
 
 def writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diasDict):
@@ -130,20 +124,19 @@ def writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diasDict):
         outFile.write("%s\n" % (tletLine.strip()))
 
         tletLine = inTracklets.readline()
-    
-    #close all files
+
+    # close all files
     for obsHist in obsHistToFile.keys():
         obsHistToFile[obsHist].close()
 
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     print "Reading tracklets from ", sys.argv[1]
     print "Writing output to the directory ", sys.argv[2]
     diasDb = sys.argv[3]
     diasTable = sys.argv[4]
     print "Reading diaSources from DB ", diasDb, ".", diasTable
-    inTracklets = file(sys.argv[1],'r')
+    inTracklets = file(sys.argv[1], 'r')
     outDirectory = sys.argv[2]
     curs = mopsDatabases.getCursor()
     # get all dias in file
@@ -159,7 +152,7 @@ if __name__=="__main__":
         inTracklets.seek(0)
         print "Starting to sort tracklets at ", time.ctime()
         writeTrackletsToPerObsHistFiles(inTracklets, outDirectory, diaDict)
-    else: 
+    else:
         print "No processing required due to empty infile."
     print "DONE writing output files at ", time.ctime()
     print ""

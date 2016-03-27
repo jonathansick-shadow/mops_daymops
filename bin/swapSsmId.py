@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--trackId", type=str, default='ssmId_to_int.dat',
                         help="File tracking the map from the ssmId strings to integers.")
     parser.add_argument("-o", "--outFile", type=str, default=None,
-                        help="Output file name for diasources with integer ssmIds. "\
+                        help="Output file name for diasources with integer ssmIds. "
                         "Default value is the input file, with addition of '_newId'.")
     args = parser.parse_args()
 

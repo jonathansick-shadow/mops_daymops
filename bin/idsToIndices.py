@@ -11,8 +11,6 @@ file.  Use this tool to convert from DiaIds to line numbers.
 """
 
 
-
-
 import sys
 
 
@@ -39,20 +37,19 @@ def translateTracks(inFile, outFile, translationDict):
         line = inFile.readline()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     tracksIn = sys.argv[1]
     mitiIn = sys.argv[2]
     tracksOut = sys.argv[3]
 
     print "Detections are in ", mitiIn, ", reading linkages from ", tracksIn, " and writing to ", tracksOut
 
-
     tracksInFile = file(tracksIn, 'r')
     mitiInFile = file(mitiIn, 'r')
     tracksOutFile = file(tracksOut, 'w')
 
     idToIndex = getIdToIndexMap(mitiInFile)
-    
+
     translateTracks(tracksInFile, tracksOutFile, idToIndex)
     tracksOutFile.close()
     print "Finished conversion successfully."

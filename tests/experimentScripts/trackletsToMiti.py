@@ -35,7 +35,7 @@ def mitifyTracklets(detsFile, pairsFile, outFile):
         for item in items:
             det = allDets[item]
             det = det.split()
-            #field 0 is the obsID, replace with trackletID.   
+            # field 0 is the obsID, replace with trackletID.
             outFile.write("%i " % (trackletsWritten))
             for data in det[1:]:
                 outFile.write("%s " % (data))
@@ -43,7 +43,7 @@ def mitifyTracklets(detsFile, pairsFile, outFile):
         trackletsWritten += 1
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     detsFile = file(sys.argv[1], 'r')
     idsIn = file(sys.argv[2], 'r')

@@ -14,13 +14,12 @@ We expect your time to write output in the following format:
 """
 
 
-
 import glob
 import sys
 
 
 def getTimeInSecsFromFile(infile):
-    lines = file(infile,'r').readlines()
+    lines = file(infile, 'r').readlines()
     tokens = lines[0].split()
     if tokens[0][-4:] != "user" or \
             tokens[1][-6:] != "system" or\
@@ -30,29 +29,29 @@ def getTimeInSecsFromFile(infile):
         print tokens[1][-6:]
         print tokens[2][-7:]
         raise Exception("Incorrectly formatted time file!?")
-    
+
     user = float(tokens[0][:-4])
     sys = float(tokens[1][:-6])
     elapsedString = tokens[2][:-7]
     print elapsedString
     elapsedParts = elapsedString.split(':')
     if len(elapsedParts) == 3:
-        h,m,s = map(float, elapsedParts)
+        h, m, s = map(float, elapsedParts)
     elif len(elapsedParts) == 2:
         h = 0
-        m,s = map(float, elapsedParts)
+        m, s = map(float, elapsedParts)
     elif len(elapsedParts) == 1:
         h = 0
         m = 0
         s = float(elapsedParts[0])
-    
-    elapsed = h * 60 * 60 + m * 60 + s 
-    print h, m, s, elapsed 
+
+    elapsed = h * 60 * 60 + m * 60 + s
+    print h, m, s, elapsed
 
     return elapsed, user, sys
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "USAGE: totalTimeOutputs timeOutputGlob"
         sys.exit(1)

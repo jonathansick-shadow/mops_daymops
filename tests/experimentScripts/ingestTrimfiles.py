@@ -6,16 +6,14 @@ import numpy
 from glob import glob
 
 
-
 def expMjdForFile(lines):
     for line in lines:
         if line[0] == "#":
             items = line.split()
-            if len(items)==3:
+            if len(items) == 3:
                 if items[1] == "Opsim_expmjd":
                     return float(items[2])
     raise Exception("Could not find line like \"# Opsim_expmjd <num>\"?!")
-
 
 
 def addToDb(cursor, dest, diaId, opsimId, ssmId, ra, decl, expMjd, mag, snr):
@@ -24,7 +22,7 @@ def addToDb(cursor, dest, diaId, opsimId, ssmId, ra, decl, expMjd, mag, snr):
 (%d, %d, %d, %f, %f, %f, %f, %f); """ % \
         (dest, diaId, opsimId, ssmId, ra, decl, expMjd, mag, snr)
     cursor.execute(sql)
-    
+
 
 def getImageLimitingMag(cursor, opsimId):
     sql = """
@@ -42,54 +40,53 @@ def calcSNR_mag(mag, m5):
     return snr_obj
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     dbName = sys.argv[1]
     dbTable = sys.argv[2]
     dest = dbName + "." + dbTable
 
     conn = db.connect(user="jmyers", passwd="jmyers", host="localhost")
     cursor = conn.cursor()
-    
+
     #cursor.execute("CREATE DATABASE fullSkyOneMonth;");
     #cursor.execute("CREATE TABLE fullSkyOneMonth.mopsDetections LIKE mops_noDeepAstromError.fullerDiaSource;")
 
     trimFiles = sorted(glob("*/*.dat"))
-    chkpt = file("finishedIngests.txt",'w')
+    chkpt = file("finishedIngests.txt", 'w')
     curDiaId = 0
-    
-    aboveLimits = file("tooFaint.dets",'w')
+
+    aboveLimits = file("tooFaint.dets", 'w')
     aboveLimits.write("#dummy opSimId ssmId ra decl expMjd mag NULL\n")
 
     for trimFile in trimFiles:
         # the following line works for this data dump but be careful if reusing this code...
         opsimId = int(trimFile[-12:-4])
         imageLimit = getImageLimitingMag(cursor, opsimId)
-        
-        lines = file(trimFile,'r').readlines()
+
+        lines = file(trimFile, 'r').readlines()
         expMjd = expMjdForFile(lines)
         for line in lines:
             if line[0] != "#":
                 items = line.split()
                 ssmId = int(items[0])
-                ra,dec  = map(float, items[1:3])
+                ra, dec = map(float, items[1:3])
                 mag = float(items[5])
                 # image limiting mag is m5 mag
                 snr = calcSNR_mag(mag, imageLimit)
-                
+
                 if mag <= imageLimit:
-                    addToDb(cursor, dest, 
-                            curDiaId, opsimId, ssmId, 
+                    addToDb(cursor, dest,
+                            curDiaId, opsimId, ssmId,
                             ra, dec, expMjd, mag, snr)
-                    
+
                     curDiaId += 1
                 else:
-                    aboveLimits.write("0 %d %d %d %f %f %f %f NULL\n" % \
-                                      (curDiaId, opsimId, ssmId, 
+                    aboveLimits.write("0 %d %d %d %f %f %f %f NULL\n" %
+                                      (curDiaId, opsimId, ssmId,
                                        ra, dec, expMjd, mag))
 
         # checkpoint that we finished this file
         print "Finished ingesting ", trimFile
         chkpt.write("%s %d\n" % (trimFile, curDiaId))
-
 
     # done!

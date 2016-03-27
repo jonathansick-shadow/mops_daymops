@@ -1,12 +1,12 @@
 import MySQLdb as db
 import MySQLdb.cursors as cursors
 
-OPSIM_DB="opsim_3_61"
-OPSIM_TABLE="output_opsim3_61"
+OPSIM_DB = "opsim_3_61"
+OPSIM_TABLE = "output_opsim3_61"
 
-DB_USER="jmyers"
-DB_PASS="jmyers"
-DB_HOST="localhost"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
+DB_HOST = "localhost"
 
 
 def getCursor(useSSCursor=False):

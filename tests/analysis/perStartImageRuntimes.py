@@ -21,18 +21,17 @@ New version also returns number of tracks found per start image.
 """
 
 
-
 import sys
 import MySQLdb as db
 
-EPSILON=1e-6 
+EPSILON = 1e-6
 
 
-DB_HOST="localhost"
-DB_USER="jmyers"
-DB_PASS="jmyers"
-OPSIM_DB="opsim_3_61"
-OPSIM_TABLE="output_opsim3_61"
+DB_HOST = "localhost"
+DB_USER = "jmyers"
+DB_PASS = "jmyers"
+OPSIM_DB = "opsim_3_61"
+OPSIM_TABLE = "output_opsim3_61"
 
 
 def increment(d, key, value):
@@ -43,7 +42,7 @@ def increment(d, key, value):
     else:
         d[key] = value
     return d
-    
+
 
 def obsHistFromStartTime(knownImages, startTime, curs):
     """ find the obsHistId of the image which happened at about
@@ -61,12 +60,11 @@ def obsHistFromStartTime(knownImages, startTime, curs):
     if len(res) != 1:
         print res
         print sql
-        raise Exception("Got multiple images at given start time %f?!" % \
-                            startTime)
+        raise Exception("Got multiple images at given start time %f?!" %
+                        startTime)
     obsHist = res[0][0]
     knownImages[startTime] = obsHist
     return obsHist
-
 
 
 def getPerStartImageRuntimesAndTrackCounts(runlog, curs):
@@ -75,12 +73,12 @@ def getPerStartImageRuntimesAndTrackCounts(runlog, curs):
     first endpoint image seen."""
     runtimeStats = {}
     trackCountStats = {}
-    
+
     curStartImageTime = None
     line = runlog.readline()
     knownImages = {}
     tracksSoFar = 0
-    
+
     while line != "":
         items = line.split()
         if len(items) > 1:
@@ -90,7 +88,7 @@ def getPerStartImageRuntimesAndTrackCounts(runlog, curs):
                 if curStartImageTime == None:
                     raise Exception("Error parsing runlog")
                 runtime = float(items[3])
-                obsHist = obsHistFromStartTime(knownImages, 
+                obsHist = obsHistFromStartTime(knownImages,
                                                curStartImageTime,
                                                curs)
                 increment(runtimeStats, obsHist, runtime)
@@ -98,14 +96,13 @@ def getPerStartImageRuntimesAndTrackCounts(runlog, curs):
                 tracksFound = int(items[5])
                 dTracks = tracksFound - tracksSoFar
                 tracksSoFar = tracksFound
-                obsHist = obsHistFromStartTime(knownImages, 
+                obsHist = obsHistFromStartTime(knownImages,
                                                curStartImageTime,
-                                               curs)                
+                                               curs)
                 increment(trackCountStats, obsHist, runtime)
-                
+
         line = runlog.readline()
     return stats
-
 
 
 def writeStats(stats1, stats2, outfile):
@@ -114,15 +111,14 @@ def writeStats(stats1, stats2, outfile):
         outfile.write("%d %10f %d\n" % (obsHist, stats1[obsHist], stats2[obsHist]))
 
 
-
-if __name__=="__main__":
-    conn = db.connect(user=DB_USER, passwd=DB_PASS, host=DB_HOST, 
+if __name__ == "__main__":
+    conn = db.connect(user=DB_USER, passwd=DB_PASS, host=DB_HOST,
                       db=OPSIM_DB)
     curs = conn.cursor()
-    runlog = file(sys.argv[1],'r')
-    outfile = file(sys.argv[2],'w')
+    runlog = file(sys.argv[1], 'r')
+    outfile = file(sys.argv[2], 'w')
 
     runtimeStats, trackCountStats = getPerStartImageRuntimesAndTrackCounts(runlog, curs)
 
     writeStats(runtimeStats, trackCountStats, outfile)
-    
+

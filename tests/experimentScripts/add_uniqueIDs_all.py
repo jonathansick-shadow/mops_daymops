@@ -15,7 +15,7 @@ Add unique diasource ID's to all sources in a series of diasource files.
 import sys
 import os
 
-if __name__=="__main__":
+if __name__ == "__main__":
     """Give this script the root of the diasource filenames, it adds unique 
     diasourceID's to each file. """
 
@@ -25,9 +25,9 @@ if __name__=="__main__":
     for t in tfilelist:
         if t.startswith(fileroot):
             infilelist.append(t)
-    
-    diacount = 0 
-    
+
+    diacount = 0
+
     outfile = open("all_dias", "w")
 
     for infile in infilelist:
@@ -39,6 +39,6 @@ if __name__=="__main__":
             if values[0].startswith("#"):
                 continue
             # assume values[0] is previous, non-unique diasourceID
-            outfile.write("%s " %(diacount) + " ".join(values[1:]) + '\n')
+            outfile.write("%s " % (diacount) + " ".join(values[1:]) + '\n')
             diacount = diacount + 1
         f.close()

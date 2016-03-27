@@ -19,13 +19,14 @@ RMS of detections from THAT approximation.
 import numpy
 import pickle
 
+
 def lookUpDet(allDets, det):
-    # change this if we start looking up dets by (Dia Id instead of line number!) vice versa really    
+    # change this if we start looking up dets by (Dia Id instead of line number!) vice versa really
     return allDets[det]
 
 
 def readAllDets(mitiFile):
-    #this will also have to change!
+    # this will also have to change!
     allDets = {}
     line = mitiFile.readline()
 
@@ -39,19 +40,20 @@ def readAllDets(mitiFile):
 
 
 class Track(object):
+
     def __init__(self, trackId, dias, isKnownToBeTrue=None):
         self.trackId = trackId
         self.dias = dias
         self._isTrue = isKnownToBeTrue
 
-    def isTrue(self, dets=None):        
+    def isTrue(self, dets=None):
         if self._isTrue != None:
             return self._isTrue
         else:
             if dets == None:
                 raise Exception("Can't tell if this is a true track unless it can see the dets, \
                                        or you specified at __init__-time.")
-            
+
             myName = lookUpDet(dets, self.dias[0]).objId
             if myName == 'NS':
                 self._isTrue = False
@@ -71,10 +73,10 @@ class Track(object):
         myDiasSet = set(self.dias)
         otherTrackDiasSet = set(otherTrack.dias)
         return myDiasSet.issubset(otherTrackDiasSet)
-            
 
 
 class Detection(object):
+
     def __init__(self, diaId=None, ra=None, dec=None, mjd=None, mag=None, objId=None):
         self.ra = ra
         self.dec = dec
@@ -89,15 +91,11 @@ class Detection(object):
         self.objId = items[6]
 
 
-
-
-
 class TrackAndRms(object):
+
     def __init__(self, track, rms):
         self.track = track
         self.rms = rms
-
-        
 
 
 class TrackQualityBuffer(object):
@@ -131,17 +129,11 @@ class TrackQualityBuffer(object):
             if items[key].isTrue():
                 return count
             count += 1
-        #no true tracks at all!
+        # no true tracks at all!
         return None
-        
 
     def getContents(self):
         return self.items
-
-
-
-
-
 
 
 def angularDistance(a, b):
@@ -153,12 +145,14 @@ def angularDistance(a, b):
             a += 360.
     return a - b
 
+
 def convertToStandardDegrees(angle):
     while angle > 360.:
         angle -= 360.
     while angle < 0.:
         angle += 360.
     return angle
+
 
 def greatCircleDistance(RA0, Dec0, RA1, Dec1):
     """
@@ -168,18 +162,17 @@ def greatCircleDistance(RA0, Dec0, RA1, Dec1):
     deg_to_rad = numpy.pi / 180.
     rad_to_deg = 180. / numpy.pi
 
-    RADist = angularDistance(RA0, RA1);
-    DecDist = angularDistance(Dec0, Dec1);    
-    #convert all factors to radians
-    RADist = deg_to_rad*convertToStandardDegrees(RADist);
-    DecDist = deg_to_rad*convertToStandardDegrees(DecDist);
-    Dec0 = deg_to_rad*convertToStandardDegrees(Dec0);
-    Dec1 = deg_to_rad*convertToStandardDegrees(Dec1);
-    r = 2*numpy.arcsin(numpy.sqrt( (numpy.sin(DecDist/2.))**2 + 
-                                 numpy.cos(Dec0)*numpy.cos(Dec1)*(numpy.sin(RADist/2))**2) );
-    #back to degrees
-    return rad_to_deg*r;
-
+    RADist = angularDistance(RA0, RA1)
+    DecDist = angularDistance(Dec0, Dec1)
+    # convert all factors to radians
+    RADist = deg_to_rad*convertToStandardDegrees(RADist)
+    DecDist = deg_to_rad*convertToStandardDegrees(DecDist)
+    Dec0 = deg_to_rad*convertToStandardDegrees(Dec0)
+    Dec1 = deg_to_rad*convertToStandardDegrees(Dec1)
+    r = 2*numpy.arcsin(numpy.sqrt((numpy.sin(DecDist/2.))**2 +
+                                  numpy.cos(Dec0)*numpy.cos(Dec1)*(numpy.sin(RADist/2))**2))
+    # back to degrees
+    return rad_to_deg*r
 
 
 def makeContiguous(angles):
@@ -200,7 +193,6 @@ def makeContiguous(angles):
     return output
 
 
-
 def getNetSqDist(ras, decls, mjds, raFunc, decFunc, isApproximate=False):
     netSqDist = 0.0
     dists = []
@@ -216,7 +208,7 @@ def getNetSqDist(ras, decls, mjds, raFunc, decFunc, isApproximate=False):
             print "all RAs were ", ras
             print "all decs were ", decls
         sqDist = dist**2
-        #print "got euclidean distance was ", sqDist
+        # print "got euclidean distance was ", sqDist
         netSqDist += sqDist
     return netSqDist, dists
 
@@ -243,7 +235,7 @@ def getRmsForTrack(dets, lineNum):
     preciseRaAccel = raFunc[2]
     preciseDecAccel = decFunc[2]
 
-    #now get the euclidean distance between predicted and observed for each point
+    # now get the euclidean distance between predicted and observed for each point
     netSqDist, dists = getNetSqDist(ras, decls, mjds, raFunc, decFunc)
 
     rms = numpy.sqrt(netSqDist / len(dets))
@@ -253,7 +245,7 @@ def getRmsForTrack(dets, lineNum):
 
     # also in this version: compute APPROXIMATED RMS by taking the
     # APPROXIMATE acceleration (calculated by comparing endpoint
-    # tracklet velocities) and 
+    # tracklet velocities) and
     firstTrackletRaVel = (ras[1] - ras[0]) / (mjds[1] - mjds[0])
     firstTrackletDecVel = (decls[1] - decls[0]) / (mjds[1] - mjds[0])
 
@@ -263,21 +255,20 @@ def getRmsForTrack(dets, lineNum):
     approximatedRaAccel = (lastTrackletRaVel - firstTrackletRaVel) / (mjds[-2] - mjds[0])
     approximatedDecAccel = (lastTrackletDecVel - firstTrackletDecVel) / (mjds[-2] - mjds[0])
 
-    approximatedRaFunc = numpy.poly1d([ approximatedRaAccel, firstTrackletRaVel, ras[0]])
+    approximatedRaFunc = numpy.poly1d([approximatedRaAccel, firstTrackletRaVel, ras[0]])
     approximatedDecFunc = numpy.poly1d([approximatedDecAccel, firstTrackletDecVel, decls[0]])
 
-    netSqDist, approximatedDists = getNetSqDist(ras, decls, mjds, approximatedRaFunc, approximatedDecFunc, isApproximate=True)
+    netSqDist, approximatedDists = getNetSqDist(
+        ras, decls, mjds, approximatedRaFunc, approximatedDecFunc, isApproximate=True)
     approximatedRms = numpy.sqrt(netSqDist / len(dets))
 
     return rms, preciseRaAccel, preciseDecAccel, raRes, decRes, approximatedRms, approximatedRaAccel, approximatedDecAccel, dists, approximatedDists
- 
-
 
 
 def analyzeResults(allDias, detToBestTracks):
     trueTrackRankHistogram = {}
 
-    tracksSaved = set()    
+    tracksSaved = set()
     findableObjectsAfterFilter = set()
 
     for dets in detToBestTracks.keys():
@@ -288,8 +279,8 @@ def analyzeResults(allDias, detToBestTracks):
             else:
                 trueTrackRankHistogram[firstTrueTrack] = 1
 
-        tracksAndRmses = detToBestTracks[dets].getContents()        
-        for myTrackAndRms in tracksAndRmses:            
+        tracksAndRmses = detToBestTracks[dets].getContents()
+        for myTrackAndRms in tracksAndRmses:
             myTrack = myTrackAndRms.track
             tracksSaved.add(myTrack.trackId)
             if myTrack.isTrue():
@@ -303,18 +294,11 @@ def analyzeResults(allDias, detToBestTracks):
         print "%d\t dets had the true track as their #%d best track" % (firstTrueTrackRankHistogram[rank], rank + 1)
 
 
-
-
-
-
-
-
-
 if __name__ == "__main__":
     import sys
     import os.path
-    detectionsMitiFile = file(sys.argv[1],'r')
-    tracksByDiaIdFile = file(sys.argv[2],'r')
+    detectionsMitiFile = file(sys.argv[1], 'r')
+    tracksByDiaIdFile = file(sys.argv[2], 'r')
     if (os.path.exists(sys.argv[3])):
         raise Exception("Don't want to open file %s for writing, it appears to exist already")
     tracksToKeepOutFile = file(sys.argv[3], 'w')
@@ -322,26 +306,27 @@ if __name__ == "__main__":
     if (os.path.exists(sys.argv[4])):
         raise Exception("Don't want to open file %s for writing, it appears to exist already")
     trackRmsOutFile = file(sys.argv[4], 'w')
-    trackRmsOutFile.write("#lineNum isTrueTrack trackLength trackRms dec0 raAccel decAccel approxTrackRms approxRaAccel approxDecAccel PER_DET_ERRORS APPROX_PER_DET_ERRORS\n")
+    trackRmsOutFile.write(
+        "#lineNum isTrueTrack trackLength trackRms dec0 raAccel decAccel approxTrackRms approxRaAccel approxDecAccel PER_DET_ERRORS APPROX_PER_DET_ERRORS\n")
 
     allDets = readAllDets(detectionsMitiFile)
 
     findableObjectsInputData = set()
-    
+
     detToBestTracks = {}
     trackLine = tracksByDiaIdFile.readline()
     lineNum = 0
-    #for each track, see if we keep it
+    # for each track, see if we keep it
     while trackLine != "":
 
-        #get track detections to calculate RMS
+        # get track detections to calculate RMS
         trackDetsIndices = map(int, trackLine.split())
-        trackDets = [ lookUpDet(allDets, x) for x in trackDetsIndices ]
+        trackDets = [lookUpDet(allDets, x) for x in trackDetsIndices]
 
-        #old: trackRms, trackRaRms, trackDecRms, perDetDists = getRmsForTrack(trackDets, lineNum)
+        # old: trackRms, trackRaRms, trackDecRms, perDetDists = getRmsForTrack(trackDets, lineNum)
 
-        [trackRms, preciseRaAccel, preciseDecAccel, trackRaRms, trackDecRms, 
-         approximatedRms, approximatedRaAccel, approximatedDecAccel, perDetDists, approximatedDists] =  getRmsForTrack(trackDets, lineNum)
+        [trackRms, preciseRaAccel, preciseDecAccel, trackRaRms, trackDecRms,
+         approximatedRms, approximatedRaAccel, approximatedDecAccel, perDetDists, approximatedDists] = getRmsForTrack(trackDets, lineNum)
 
         thisTrack = Track(lineNum, trackDetsIndices)
         # if this was a true track, add this object to the findable objects set
@@ -351,20 +336,18 @@ if __name__ == "__main__":
             objId = trackDets[0].objId
             findableObjectsInputData.add(objId)
 
-            
-        trackRmsOutFile.write("%d %r %d %1.12f %1.12f %1.12f %1.12f %1.12f %1.12f %1.12f PER_DET_ERRORS:" % \
-                                  (lineNum, isTrue, len(thisTrack.dias), trackRms, lookUpDet(allDets, thisTrack.dias[0]).dec, \
-                                       preciseRaAccel, preciseDecAccel, approximatedRms, approximatedRaAccel, approximatedDecAccel))
+        trackRmsOutFile.write("%d %r %d %1.12f %1.12f %1.12f %1.12f %1.12f %1.12f %1.12f PER_DET_ERRORS:" %
+                              (lineNum, isTrue, len(thisTrack.dias), trackRms, lookUpDet(allDets, thisTrack.dias[0]).dec,
+                               preciseRaAccel, preciseDecAccel, approximatedRms, approximatedRaAccel, approximatedDecAccel))
         for dist in perDetDists:
             trackRmsOutFile.write(" %1.12f" % dist)
 
-        trackRmsOutFile.write(" APPROX_PER_DET_ERRORS: ") 
+        trackRmsOutFile.write(" APPROX_PER_DET_ERRORS: ")
 
         for dist in approximatedDists:
             trackRmsOutFile.write(" %1.12f" % dist)
 
         trackRmsOutFile.write("\n")
-
 
         for det in trackDets:
             if not detToBestTracks.has_key(det):
@@ -379,7 +362,7 @@ if __name__ == "__main__":
 
     print "Done searching through tracks! Read %d tracks." % (lineNum)
     print "There were initially %d findable objects." % (len(findableObjectsInputData))
-    
+
     pickle.dump(detToBestTracks, tracksToKeepOutFile)
 
     print "Finished dumping dict of det -> TrackQualityBuffer."

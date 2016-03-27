@@ -20,7 +20,7 @@ def selectSubset(items, nToChoose):
     indicesToKeep = set()
     nItems = len(items)
     # choose nItems unique indices
-    for i in range(nToChoose):  
+    for i in range(nToChoose):
         choice = random.randint(0, nItems - 1)
         while choice in indicesToKeep:
             choice = random.randint(0, nItems - 1)
@@ -34,14 +34,14 @@ def selectSubset(items, nToChoose):
 def writeItems(outfile, items):
     for i in items:
         outfile.write("%d\n" % i)
-    
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     import sys
-    items = map(int, file(sys.argv[1],'r').readlines())
+    items = map(int, file(sys.argv[1], 'r').readlines())
     fraction = float(sys.argv[2])
     randomSeed = int(sys.argv[3])
-    outfile = file(sys.argv[4],'w')
+    outfile = file(sys.argv[4], 'w')
     print "Selecting ", fraction*100, "% of the items from ", sys.argv[1], \
         " and writing them to ", outfile
     print "Seeding random number generator with value ", randomSeed
@@ -49,7 +49,7 @@ if __name__=="__main__":
 
     nItems = len(items)
 
-    selectedItems = selectSubset(items, int(nItems *fraction))
+    selectedItems = selectSubset(items, int(nItems * fraction))
 
     writeItems(outfile, selectedItems)
-    
+
